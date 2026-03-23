@@ -9,6 +9,10 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Utilitário para criar e validar tokens JWT (HS256). Claims principais: {@code sub} = userId,
+ * {@code role} = OPERATOR ou CLIENT. Expiração configurável via {@code jwt.expiration}.
+ */
 @Component
 public class JwtUtil {
 
@@ -18,6 +22,7 @@ public class JwtUtil {
     @Value("${jwt.expiration:28800000}")
     private long expiration;
 
+    /** Gera JWT assinado com a chave configurada em {@code jwt.secret}. */
     public String generateToken(String userId, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
@@ -30,6 +35,7 @@ public class JwtUtil {
                 .compact();
     }
 
+    /** Retorna true se assinatura e expiração forem válidas. */
     public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
@@ -39,10 +45,12 @@ public class JwtUtil {
         }
     }
 
+    /** Extrai o subject do token (identificador do usuário). */
     public String extractUserId(String token) {
         return getClaims(token).getSubject();
     }
 
+    /** Extrai o claim {@code role} (sem prefixo ROLE_). */
     public String extractRole(String token) {
         Object role = getClaims(token).get("role");
         return role == null ? "" : role.toString();

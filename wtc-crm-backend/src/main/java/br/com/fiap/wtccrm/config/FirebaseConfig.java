@@ -8,6 +8,10 @@ import java.io.IOException;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+/**
+ * Inicializa o Firebase Admin SDK se {@code firebase-service-account.json} existir no classpath.
+ * Sem o arquivo, a aplicação continua subindo (útil para dev sem credenciais).
+ */
 @Configuration
 public class FirebaseConfig {
 

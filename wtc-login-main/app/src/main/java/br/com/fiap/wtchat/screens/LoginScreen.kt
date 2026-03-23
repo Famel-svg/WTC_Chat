@@ -1,3 +1,6 @@
+/**
+ * Tela de login: envia e-mail/senha ao backend, grava [SessionManager] e navega para [Principal].
+ */
 package br.com.fiap.wtchat.screens
 import br.com.fiap.wtchat.R
 import android.view.View.X

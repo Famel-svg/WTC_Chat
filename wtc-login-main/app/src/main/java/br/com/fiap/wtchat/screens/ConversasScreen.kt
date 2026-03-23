@@ -1,3 +1,6 @@
+/**
+ * Lista de conversas: GET `/api/chat/conversations` e navegação para [ChatScreen] com `conversationId`.
+ */
 package br.com.fiap.wtchat.screens
 import br.com.fiap.wtchat.functions.BottomNavBar
 import androidx.compose.foundation.Image

@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * API REST do chat: listar conversas, mensagens, criar conversa, enviar mensagem e atualizar status.
+ * Complementa o canal WebSocket ({@link ChatWebSocketController}).
+ */
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {

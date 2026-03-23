@@ -13,6 +13,10 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * Extrai o Bearer token do header {@code Authorization}, valida com {@link JwtUtil} e preenche o
+ * {@link org.springframework.security.core.context.SecurityContext} com {@code ROLE_*}.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

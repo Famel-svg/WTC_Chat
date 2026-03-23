@@ -1,3 +1,6 @@
+/**
+ * Grafo de navegação Compose: login → principal, abas e chat com argumento [conversationId].
+ */
 package br.com.fiap.wtchat.navigation
 
 import androidx.compose.runtime.Composable
@@ -10,7 +13,6 @@ import br.com.fiap.wtchat.screens.*
 
 @Composable
 fun AppNavigation() {
-
     val navController = rememberNavController()
 
 

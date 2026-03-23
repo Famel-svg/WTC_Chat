@@ -1,3 +1,6 @@
+/**
+ * UI do chat em bolhas; integra [ChatViewModel] para carregar/enviar mensagens via API REST.
+ */
 package br.com.fiap.wtchat.screens
 
 import androidx.navigation.NavController
@@ -238,6 +241,9 @@ fun ChatBubble(
 
 
 
+/**
+ * @param conversationId identificador da conversa (rota `Chat/{conversationId}`).
+ */
 @Composable
 fun ChatScreen(
     navController: NavController,

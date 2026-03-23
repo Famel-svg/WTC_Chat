@@ -14,6 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/**
+ * Regras de autenticação: validação de credenciais, hash BCrypt e emissão de JWT.
+ * <p>
+ * Implementação atual usa armazenamento em memória para desenvolvimento; em produção,
+ * substituir por leitura/escrita na coleção Firestore {@code users}.
+ */
 @Service
 public class AuthService {
 
@@ -28,6 +34,9 @@ public class AuthService {
         seedOperator();
     }
 
+    /**
+     * Localiza usuário por e-mail, confere senha e gera token HS256 com {@code userId} e {@code role}.
+     */
     public LoginResponseDTO login(LoginRequestDTO request) {
         String email = request.email().toLowerCase(Locale.ROOT);
         String userId = idByEmail.get(email);
@@ -42,6 +51,9 @@ public class AuthService {
         return new LoginResponseDTO(token, user.getId(), user.getRole(), user.getName());
     }
 
+    /**
+     * Cadastra novo usuário com papel OPERATOR ou CLIENT e retorna JWT da mesma forma que o login.
+     */
     public LoginResponseDTO register(RegisterRequestDTO request) {
         String normalizedRole = request.role().toUpperCase(Locale.ROOT);
         if (!normalizedRole.equals("OPERATOR") && !normalizedRole.equals("CLIENT")) {
@@ -65,6 +77,9 @@ public class AuthService {
         return new LoginResponseDTO(token, user.getId(), user.getRole(), user.getName());
     }
 
+    /**
+     * Persiste o token FCM para envio de notificações push ao dispositivo do usuário.
+     */
     public void updateFcmToken(String userId, String token) {
         UserAccount user = usersById.get(userId);
         if (user == null) {
@@ -73,6 +88,9 @@ public class AuthService {
         user.setFcmToken(token);
     }
 
+    /**
+     * Garante um operador padrão para testes locais (credenciais no README).
+     */
     private void seedOperator() {
         RegisterRequestDTO seed = new RegisterRequestDTO("WTC Operator", "operator@wtc.com", "123456", "OPERATOR");
         register(seed);

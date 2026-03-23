@@ -12,6 +12,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
+/**
+ * Persistência em memória de conversas e mensagens (mapas). Em produção, trocar por Firestore:
+ * coleção {@code conversations} e subcoleção {@code messages}.
+ */
 @Service
 public class ChatService {
 

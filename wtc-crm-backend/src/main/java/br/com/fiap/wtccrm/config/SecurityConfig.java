@@ -12,6 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Segurança stateless: sessão sem cookies, JWT no header {@code Authorization: Bearer}.
+ * Rotas públicas: auth, Swagger e WebSocket; operações de CRM restritas a {@code ROLE_OPERATOR}.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -22,6 +26,7 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    /** Configura CORS, desabilita CSRF (API REST), aplica JWT filter e regras por URL/papel. */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())

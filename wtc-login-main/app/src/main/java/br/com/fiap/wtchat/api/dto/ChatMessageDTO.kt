@@ -1,5 +1,6 @@
 package br.com.fiap.wtchat.api.dto
 
+/** Espelha `MessageDTO` do backend: envio e recebimento de mensagens REST. */
 data class ChatMessageDTO(
     val id: String? = null,
     val conversationId: String,

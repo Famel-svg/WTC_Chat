@@ -1,3 +1,8 @@
+/**
+ * Cliente HTTP singleton: Retrofit + Gson + OkHttp (log de requisições em debug).
+ *
+ * **Importante:** altere [BASE_URL] conforme o ambiente (emulador `10.0.2.2`, device físico = IP da máquina, produção = HTTPS).
+ */
 package br.com.fiap.wtchat.api
 
 import okhttp3.OkHttpClient

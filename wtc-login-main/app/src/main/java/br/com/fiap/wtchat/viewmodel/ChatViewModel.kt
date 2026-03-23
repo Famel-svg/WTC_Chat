@@ -1,3 +1,7 @@
+/**
+ * Estado e lógica da tela de chat: carrega mensagens via GET e envia via POST no backend.
+ * [connect] deve ser chamado com o `conversationId` vindo da navegação.
+ */
 package br.com.fiap.wtchat.viewmodel
 
 import android.util.Log
@@ -16,6 +20,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
+/** Item de UI: texto, se é do usuário logado e horário formatado. */
 data class ChatMessage(
     val text: String,
     val isUser: Boolean,
@@ -30,6 +35,7 @@ class ChatViewModel : ViewModel() {
     private val _messages = mutableStateListOf<ChatMessage>()
     val messages: SnapshotStateList<ChatMessage> = _messages
 
+    /** Carrega histórico da conversa e prepara envio para este [conversationId]. */
     fun connect(conversationId: String) {
         this.conversationId = conversationId
         _messages.clear()
@@ -49,6 +55,7 @@ class ChatViewModel : ViewModel() {
         }
     }
 
+    /** Envia texto ao backend; o servidor devolve a mensagem persistida com id e timestamps. */
     fun sendMessage(text: String) {
         val cid = conversationId ?: return
         if (text.isBlank()) return
@@ -80,6 +87,7 @@ class ChatViewModel : ViewModel() {
     }
 
 
+    /** Converte DTO da API para bolha de UI (lado usuário vs outro). */
     private fun ChatMessageDTO.toUiMessage(currentUserId: String): ChatMessage {
         val isUser = senderId == currentUserId
         return ChatMessage(
@@ -89,6 +97,7 @@ class ChatViewModel : ViewModel() {
         )
     }
 
+    /** ISO-8601 do backend → hora local HH:mm. */
     private fun formatSentAt(sentAt: String?): String {
         if (sentAt.isNullOrBlank()) return "--:--"
         return try {
