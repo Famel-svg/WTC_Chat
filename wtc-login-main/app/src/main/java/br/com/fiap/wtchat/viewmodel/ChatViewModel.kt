@@ -30,13 +30,6 @@ class ChatViewModel : ViewModel() {
     private val _messages = mutableStateListOf<ChatMessage>()
     val messages: SnapshotStateList<ChatMessage> = _messages
 
-    private fun getInitialMessages(): SnapshotStateList<ChatMessage> {
-
-        return mutableStateListOf(
-            ChatMessage(text = "Olá professor, nos envie uma mensagem.", isUser = false, timestamp = "09:00")
-        )
-    }
-
     fun connect(conversationId: String) {
         this.conversationId = conversationId
         _messages.clear()

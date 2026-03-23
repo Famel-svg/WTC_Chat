@@ -49,6 +49,11 @@ fun AppNavigation() {
             ConfiguracoesScreen(navController = navController)
         }
 
+        // Placeholder until dedicated TaskList screen is integrated.
+        composable(route = "Tarefas") {
+            MainScreen(navController = navController)
+        }
+
 
     }
 }

@@ -220,8 +220,7 @@ fun MessageHeader(navController: NavController) {
         item {
             Button(
                 onClick = {
-
-                    navController.navigate("lista_de_acoes")
+                    navController.navigate("Principal")
                 },
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier.size(56.dp, 36.dp),

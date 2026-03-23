@@ -102,6 +102,12 @@ fun ConversasScreen(
             MessageHeader(navController = navController)
             if (isLoading) {
                 androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+            } else if (conversations.isEmpty()) {
+                Text(
+                    text = "Nenhuma conversa encontrada. Crie uma conversa pela API para iniciar o chat.",
+                    color = Color.Gray,
+                    modifier = Modifier.padding(16.dp)
+                )
             } else {
                 ContactList(navController = navController, conversations = conversations)
             }
@@ -157,11 +163,11 @@ fun TopSection() {
 @Composable
 fun MessageHeader(navController: NavController) {
     val actions = listOf(
-        Triple("Criar grupo", Icons.Default.Group, "criar_grupo_route"),
-        Triple("Criar tarefa", Icons.Default.CalendarToday, "tarefas"),
-        Triple("Disparo", Icons.Default.Send, "disparo_route"),
-        Triple("Criar ligação", Icons.Default.Call, "ligacao_route"),
-        Triple("promoção", Icons.Default.Campaign, "promocao_route")
+        Triple("Criar grupo", Icons.Default.Group, "criar_lista"),
+        Triple("Criar tarefa", Icons.Default.CalendarToday, "Tarefas"),
+        Triple("Disparo", Icons.Default.Send, "Conversas"),
+        Triple("Criar ligação", Icons.Default.Call, "Principal"),
+        Triple("Promoção", Icons.Default.Campaign, "Principal")
     )
     LazyRow(
         modifier = Modifier.padding(vertical = 16.dp),
@@ -181,7 +187,7 @@ fun MessageHeader(navController: NavController) {
         }
         item {
             Button(
-                onClick = { navController.navigate("alguma_outra_rota") },
+                onClick = { navController.navigate("Principal") },
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier.size(56.dp, 36.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE57373))
