@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="laranja_wtc">#EA5020</color>
+    <color name="azul_wtc">#093666</color>
+    <color name="branco_wtc">#E7EEF1</color>
+    <color name="cinza_wtc">#D9D9D9</color>
+    <color name="azul_link_wtc">#699ABB</color>
+    <color name="cinzaescuro_wtc">#454545</color>
+    <color name="cinzabarra_wtc">#D3D3D3</color>
+    <color name="cinzacaixa_wtc">#E2E2E2</color>
+    <color name="preto_wtc">#000000</color>
+    <color name="check_wtc">#FFE94F1E</color>
+    <color name="unchecked_wtc">#FFD3D3D3</color>
+    <color name="tarefa1_wtc">#FF8E8E</color>
+    <color name="tarefa2_wtc">#D7DA83</color>
+    <color name="tarefa3_wtc">#83ADDA</color>
+    <color name="verde_botao">#A9FF5D</color>
+</resources>
