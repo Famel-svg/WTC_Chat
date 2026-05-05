@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "58932768736",
+    "project_number": "71564824671",
     "project_id": "wtc-chat-e9532",
     "storage_bucket": "wtc-chat-e9532.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:58932768736:android:REPLACE_ME_IN_FIREBASE_CONSOLE",
+        "mobilesdk_app_id": "1:71564824671:android:535b23019742e3fe8c8bea",
         "android_client_info": {
           "package_name": "br.com.fiap.wtchat"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "REPLACE_WITH_WEB_API_KEY_FROM_FIREBASE"
+          "current_key": "AIzaSyB5ITLWnsGy1ahm5cwVg20CyC8M1F03bbA"
         }
       ],
       "services": {
