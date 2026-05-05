@@ -1,0 +1,10 @@
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - wtc-mongo-data:/data/db
+
+volumes:
+  wtc-mongo-data:

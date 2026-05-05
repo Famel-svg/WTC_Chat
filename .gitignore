@@ -1,8 +1,9 @@
 .cursor/
 
-# Secrets — do not commit (see docs below if one was committed by mistake)
+# Secrets — do not commit
 .env
 .env.*
 !.env.example
-
-wtc-crm-backend/src/main/resources/wtc-chat-81c38-d85c9ae8335d.json
+wtc-crm-backend/src/main/resources/*.json
+wtc-crm-backend/target/
+**/target/
