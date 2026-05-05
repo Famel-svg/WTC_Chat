@@ -11,6 +11,10 @@ Aplicativo **Kotlin** + **Jetpack Compose** para login, navegação principal, c
 | Android SDK | Instalado via Android Studio |
 | Backend | Spring Boot rodando (ver README do `wtc-crm-backend`) |
 
+## Firebase / Google (`.env`)
+
+Na **raiz do repositório** (pasta pai de `wtc-login-main`), mantenha o arquivo **`.env`** com `GOOGLE_CLOUD_PROJECT_ID`, `FIREBASE_WEB_API_KEY`, etc. No build, o Gradle lê esse arquivo e gera campos em **`BuildConfig`**; use `br.com.fiap.wtchat.config.FirebaseEnv` no código quando for integrar o SDK cliente (FCM, etc.).
+
 ## Configurar URL da API
 
 O cliente HTTP está em `app/src/main/java/br/com/fiap/wtchat/api/RetrofitInstance.kt`:

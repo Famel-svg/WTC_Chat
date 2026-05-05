@@ -1,70 +1,83 @@
 package br.com.fiap.wtccrm.tasks.service;
 
 import br.com.fiap.wtccrm.exception.BusinessException;
+import br.com.fiap.wtccrm.persistence.document.TaskDocument;
+import br.com.fiap.wtccrm.persistence.repository.TaskRepository;
 import br.com.fiap.wtccrm.tasks.dto.TaskDTO;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TaskService {
-    private final Map<String, TaskDTO> tasks = new ConcurrentHashMap<>();
+
+    private final TaskRepository taskRepository;
+
+    public TaskService(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
+    }
 
     public List<TaskDTO> list(String clientId, String status, String operatorId) {
-        return tasks.values().stream()
-                .filter(t -> clientId == null || clientId.equals(t.clientId()))
-                .filter(t -> status == null || status.equalsIgnoreCase(t.status()))
-                .filter(t -> operatorId == null || operatorId.equals(t.operatorId()))
+        return taskRepository.findAll().stream()
+                .filter(t -> clientId == null || clientId.equals(t.getClientId()))
+                .filter(t -> status == null || status.equalsIgnoreCase(t.getStatus()))
+                .filter(t -> operatorId == null || operatorId.equals(t.getOperatorId()))
+                .map(this::toDto)
                 .toList();
     }
 
     public TaskDTO findById(String id) {
-        TaskDTO dto = tasks.get(id);
-        if (dto == null) {
-            throw new BusinessException("Task not found");
-        }
-        return dto;
+        return taskRepository.findById(id).map(this::toDto).orElseThrow(() -> new BusinessException("Task not found"));
     }
 
     public TaskDTO create(TaskDTO request) {
         Instant now = Instant.now();
-        TaskDTO dto = new TaskDTO(
-                UUID.randomUUID().toString(),
-                request.title(),
-                request.description(),
-                request.clientId(),
-                request.operatorId(),
-                request.status() == null ? "OPEN" : request.status(),
-                request.priority() <= 0 ? 1 : request.priority(),
-                request.dueDate(),
-                now,
-                now);
-        tasks.put(dto.id(), dto);
-        return dto;
+        TaskDocument doc = new TaskDocument();
+        doc.setId(UUID.randomUUID().toString());
+        doc.setTitle(request.title());
+        doc.setDescription(request.description());
+        doc.setClientId(request.clientId());
+        doc.setOperatorId(request.operatorId());
+        doc.setStatus(request.status() == null ? "OPEN" : request.status());
+        doc.setPriority(request.priority() <= 0 ? 1 : request.priority());
+        doc.setDueDate(request.dueDate());
+        doc.setCreatedAt(now);
+        doc.setUpdatedAt(now);
+        taskRepository.save(doc);
+        return toDto(doc);
     }
 
     public TaskDTO update(String id, TaskDTO request) {
-        TaskDTO current = findById(id);
-        TaskDTO updated = new TaskDTO(
-                current.id(),
-                request.title() == null ? current.title() : request.title(),
-                request.description() == null ? current.description() : request.description(),
-                request.clientId() == null ? current.clientId() : request.clientId(),
-                request.operatorId() == null ? current.operatorId() : request.operatorId(),
-                request.status() == null ? current.status() : request.status(),
-                request.priority() <= 0 ? current.priority() : request.priority(),
-                request.dueDate() == null ? current.dueDate() : request.dueDate(),
-                current.createdAt(),
-                Instant.now());
-        tasks.put(id, updated);
-        return updated;
+        TaskDocument current = taskRepository.findById(id).orElseThrow(() -> new BusinessException("Task not found"));
+        current.setTitle(request.title() == null ? current.getTitle() : request.title());
+        current.setDescription(request.description() == null ? current.getDescription() : request.description());
+        current.setClientId(request.clientId() == null ? current.getClientId() : request.clientId());
+        current.setOperatorId(request.operatorId() == null ? current.getOperatorId() : request.operatorId());
+        current.setStatus(request.status() == null ? current.getStatus() : request.status());
+        current.setPriority(request.priority() <= 0 ? current.getPriority() : request.priority());
+        current.setDueDate(request.dueDate() == null ? current.getDueDate() : request.dueDate());
+        current.setUpdatedAt(Instant.now());
+        taskRepository.save(current);
+        return toDto(current);
     }
 
     public void delete(String id) {
         findById(id);
-        tasks.remove(id);
+        taskRepository.deleteById(id);
+    }
+
+    private TaskDTO toDto(TaskDocument t) {
+        return new TaskDTO(
+                t.getId(),
+                t.getTitle(),
+                t.getDescription(),
+                t.getClientId(),
+                t.getOperatorId(),
+                t.getStatus(),
+                t.getPriority(),
+                t.getDueDate(),
+                t.getCreatedAt(),
+                t.getUpdatedAt());
     }
 }

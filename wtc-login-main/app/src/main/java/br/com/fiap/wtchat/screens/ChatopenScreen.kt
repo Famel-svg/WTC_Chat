@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.constrainWidth
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.fiap.wtchat.viewmodel.ChatViewModel
+import br.com.fiap.wtchat.viewmodel.ChatMessage
 
 
 
@@ -290,7 +291,7 @@ fun ChatScreen(
             ) {
 
 
-                items(viewModel.messages.reversed()) { message ->
+                items(viewModel.messages.toList().reversed()) { message ->
                     ChatBubble(
                         message = message.text,
                         isUser = message.isUser,

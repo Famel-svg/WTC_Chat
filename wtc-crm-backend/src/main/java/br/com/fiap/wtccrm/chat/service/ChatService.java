@@ -3,83 +3,155 @@ package br.com.fiap.wtccrm.chat.service;
 import br.com.fiap.wtccrm.chat.dto.ConversationDTO;
 import br.com.fiap.wtccrm.chat.dto.MessageDTO;
 import br.com.fiap.wtccrm.exception.BusinessException;
+import br.com.fiap.wtccrm.persistence.document.ConversationDocument;
+import br.com.fiap.wtccrm.persistence.document.MessageDocument;
+import br.com.fiap.wtccrm.notifications.service.PushNotificationService;
+import br.com.fiap.wtccrm.persistence.document.UserDocument;
+import br.com.fiap.wtccrm.persistence.repository.ConversationRepository;
+import br.com.fiap.wtccrm.persistence.repository.MessageRepository;
+import br.com.fiap.wtccrm.persistence.repository.UserRepository;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 /**
- * Persistência em memória de conversas e mensagens (mapas). Em produção, trocar por Firestore:
- * coleção {@code conversations} e subcoleção {@code messages}.
+ * Conversas e mensagens persistidas no MongoDB ({@code conversations}, {@code messages}).
  */
 @Service
 public class ChatService {
 
-    private final Map<String, ConversationDTO> conversations = new ConcurrentHashMap<>();
-    private final Map<String, List<MessageDTO>> messagesByConversation = new ConcurrentHashMap<>();
+    private final ConversationRepository conversationRepository;
+    private final MessageRepository messageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final PushNotificationService pushNotificationService;
+    private final UserRepository userRepository;
+
+    public ChatService(
+            ConversationRepository conversationRepository,
+            MessageRepository messageRepository,
+            SimpMessagingTemplate messagingTemplate,
+            PushNotificationService pushNotificationService,
+            UserRepository userRepository) {
+        this.conversationRepository = conversationRepository;
+        this.messageRepository = messageRepository;
+        this.messagingTemplate = messagingTemplate;
+        this.pushNotificationService = pushNotificationService;
+        this.userRepository = userRepository;
+    }
 
     public List<ConversationDTO> listConversations() {
-        return conversations.values().stream()
-                .sorted(Comparator.comparing(ConversationDTO::lastMessageAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+        return conversationRepository.findAll().stream()
+                .map(this::convToDto)
+                .sorted(Comparator.comparing(ConversationDTO::lastMessageAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .reversed())
                 .toList();
     }
 
     public List<MessageDTO> listMessages(String conversationId) {
-        return messagesByConversation.getOrDefault(conversationId, List.of());
+        return messageRepository.findByConversationIdOrderBySentAtAsc(conversationId).stream()
+                .map(this::msgToDto)
+                .toList();
     }
 
     public ConversationDTO createConversation(ConversationDTO request) {
-        ConversationDTO dto = new ConversationDTO(
-                UUID.randomUUID().toString(),
-                request.type() == null ? "ONE_TO_ONE" : request.type(),
-                request.name(),
-                request.participantIds(),
-                null,
-                Instant.now());
-        conversations.put(dto.id(), dto);
-        messagesByConversation.put(dto.id(), new ArrayList<>());
-        return dto;
+        ConversationDocument doc = new ConversationDocument();
+        doc.setId(UUID.randomUUID().toString());
+        doc.setType(request.type() == null ? "ONE_TO_ONE" : request.type());
+        doc.setName(request.name());
+        doc.setParticipantIds(request.participantIds());
+        doc.setLastMessageContent(null);
+        doc.setLastMessageAt(Instant.now());
+        conversationRepository.save(doc);
+        return convToDto(doc);
     }
 
     public MessageDTO sendMessage(String conversationId, MessageDTO request) {
-        ConversationDTO conv = conversations.get(conversationId);
-        if (conv == null) {
-            throw new BusinessException("Conversation not found");
-        }
-        MessageDTO dto = new MessageDTO(
-                UUID.randomUUID().toString(),
-                conversationId,
-                request.senderId(),
-                request.senderName(),
-                request.content(),
-                request.mediaUrl(),
-                request.type() == null ? "TEXT" : request.type(),
-                "SENT",
-                Instant.now());
-        messagesByConversation.computeIfAbsent(conversationId, k -> new ArrayList<>()).add(dto);
-        conversations.put(conversationId, new ConversationDTO(
-                conv.id(),
-                conv.type(),
-                conv.name(),
-                conv.participantIds(),
-                dto.content(),
-                dto.sentAt()));
+        ConversationDocument conv = conversationRepository
+                .findById(conversationId)
+                .orElseThrow(() -> new BusinessException("Conversation not found"));
+        MessageDocument msg = new MessageDocument();
+        msg.setId(UUID.randomUUID().toString());
+        msg.setConversationId(conversationId);
+        msg.setSenderId(request.senderId());
+        msg.setSenderName(request.senderName());
+        msg.setContent(request.content());
+        msg.setMediaUrl(request.mediaUrl());
+        msg.setType(request.type() == null ? "TEXT" : request.type());
+        msg.setStatus("SENT");
+        msg.setSentAt(Instant.now());
+        messageRepository.save(msg);
+
+        conv.setLastMessageContent(msg.getContent());
+        conv.setLastMessageAt(msg.getSentAt());
+        conversationRepository.save(conv);
+
+        MessageDTO dto = msgToDto(msg);
+        messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, dto);
+        notifyParticipantsPush(dto, conv);
         return dto;
     }
 
-    public void updateStatus(String messageId, String status) {
-        for (Map.Entry<String, List<MessageDTO>> e : messagesByConversation.entrySet()) {
-            List<MessageDTO> updated = e.getValue().stream().map(m -> {
-                if (!m.id().equals(messageId)) {
-                    return m;
-                }
-                return new MessageDTO(m.id(), m.conversationId(), m.senderId(), m.senderName(), m.content(), m.mediaUrl(), m.type(), status, m.sentAt());
-            }).toList();
-            messagesByConversation.put(e.getKey(), new ArrayList<>(updated));
+    private void notifyParticipantsPush(MessageDTO saved, ConversationDocument conv) {
+        if (conv.getParticipantIds() == null) {
+            return;
         }
+        String preview =
+                saved.content() != null && saved.content().length() > 120
+                        ? saved.content().substring(0, 117) + "..."
+                        : saved.content() != null ? saved.content() : "";
+        Map<String, String> data = new HashMap<>();
+        data.put("type", "CHAT_MESSAGE");
+        data.put("conversationId", saved.conversationId());
+        data.put("messageId", saved.id());
+        for (String userId : conv.getParticipantIds()) {
+            if (userId.equals(saved.senderId())) {
+                continue;
+            }
+            userRepository
+                    .findById(userId)
+                    .map(UserDocument::getFcmToken)
+                    .filter(t -> t != null && !t.isBlank())
+                    .ifPresent(token -> pushNotificationService.sendPush(
+                            token,
+                            saved.senderName() != null ? saved.senderName() : "Nova mensagem",
+                            preview,
+                            data));
+        }
+    }
+
+    public void updateStatus(String messageId, String status) {
+        MessageDocument msg = messageRepository
+                .findById(messageId)
+                .orElseThrow(() -> new BusinessException("Message not found"));
+        msg.setStatus(status);
+        messageRepository.save(msg);
+    }
+
+    private ConversationDTO convToDto(ConversationDocument c) {
+        return new ConversationDTO(
+                c.getId(),
+                c.getType(),
+                c.getName(),
+                c.getParticipantIds(),
+                c.getLastMessageContent(),
+                c.getLastMessageAt());
+    }
+
+    private MessageDTO msgToDto(MessageDocument m) {
+        return new MessageDTO(
+                m.getId(),
+                m.getConversationId(),
+                m.getSenderId(),
+                m.getSenderName(),
+                m.getContent(),
+                m.getMediaUrl(),
+                m.getType(),
+                m.getStatus(),
+                m.getSentAt());
     }
 }

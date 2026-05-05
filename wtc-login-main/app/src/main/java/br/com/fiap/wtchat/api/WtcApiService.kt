@@ -8,10 +8,12 @@ import br.com.fiap.wtchat.api.dto.ChatConversationDTO
 import br.com.fiap.wtchat.api.dto.ChatMessageDTO
 import br.com.fiap.wtchat.api.dto.LoginRequestDTO
 import br.com.fiap.wtchat.api.dto.LoginResponseDTO
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface WtcApiService {
@@ -40,5 +42,12 @@ interface WtcApiService {
         @Path("id") conversationId: String,
         @Body request: ChatMessageDTO
     ): ChatMessageDTO
+
+    /** PUT `/api/auth/users/{id}/fcm-token` — registra token FCM do dispositivo (corpo text/plain). */
+    @PUT("api/auth/users/{id}/fcm-token")
+    suspend fun updateFcmToken(
+        @Path("id") userId: String,
+        @Body body: RequestBody
+    )
 }
 

@@ -8,12 +8,14 @@ API REST em **Java 17** + **Spring Boot 3** para o CRM WTC (World Trade Center S
 |------|---------------------|
 | JDK | **17** |
 | Maven | 3.9+ |
+| **MongoDB** | **Obrigatório:** instância acessível na URI configurada (padrão `mongodb://localhost:27017/wtccrm`). Pode subir com `docker compose up -d` na pasta deste backend (`docker-compose.yml`). |
 | Firebase (opcional em dev) | Arquivo `firebase-service-account.json` em `src/main/resources/` |
 
 ## Como executar
 
 ```bash
 cd wtc-crm-backend
+docker compose up -d
 mvn spring-boot:run
 ```
 
@@ -21,7 +23,9 @@ Servidor padrão: **http://localhost:8080**
 
 ### Variáveis e configuração
 
-Edite `src/main/resources/application.properties`:
+Na **raiz do repositório**, use o arquivo **`.env`** (veja `.env.example`). Ele é carregado automaticamente antes do Spring subir (`DotenvBootstrap`) e preenche propriedades como `GOOGLE_CLOUD_PROJECT_ID`, `MONGODB_URI`, `JWT_SECRET`, etc., quando definidas.
+
+Edite também `src/main/resources/application.properties`:
 
 | Propriedade | Descrição |
 |-------------|-----------|

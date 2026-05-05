@@ -14,6 +14,17 @@ object RetrofitInstance {
     // Emulador Android -> localhost do seu PC: 10.0.2.2
     private const val BASE_URL = "http://10.0.2.2:8080/"
 
+    /** Base URL do WebSocket STOMP (Spring `/ws/native`). */
+    fun wsNativeUrl(): String {
+        val b = BASE_URL.trimEnd('/')
+        val ws = when {
+            b.startsWith("https://") -> "wss://" + b.removePrefix("https://")
+            b.startsWith("http://") -> "ws://" + b.removePrefix("http://")
+            else -> b
+        }
+        return "$ws/ws/native"
+    }
+
     private val client: OkHttpClient by lazy {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY

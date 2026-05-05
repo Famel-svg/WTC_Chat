@@ -3,7 +3,6 @@
  */
 package br.com.fiap.wtchat.screens
 import br.com.fiap.wtchat.R
-import android.view.View.X
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.fiap.wtchat.fcm.FcmRegistrar
 import br.com.fiap.wtchat.ui.theme.WTChatTheme
 import br.com.fiap.wtchat.api.RetrofitInstance
 import br.com.fiap.wtchat.api.dto.LoginRequestDTO
@@ -225,6 +225,7 @@ fun LoginScreen(modifier: Modifier = Modifier,
                                         name = response.name
                                     )
                                 )
+                                FcmRegistrar.registerAfterLogin(scope, response.userId)
                                 navController.navigate("Principal") {
                                     popUpTo("Login") { inclusive = true }
                                 }

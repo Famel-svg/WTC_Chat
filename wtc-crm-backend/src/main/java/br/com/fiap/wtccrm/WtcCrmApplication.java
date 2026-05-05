@@ -1,5 +1,6 @@
 package br.com.fiap.wtccrm;
 
+import br.com.fiap.wtccrm.config.DotenvBootstrap;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 public class WtcCrmApplication {
 
     public static void main(String[] args) {
+        DotenvBootstrap.load();
         SpringApplication.run(WtcCrmApplication.class, args);
     }
 }

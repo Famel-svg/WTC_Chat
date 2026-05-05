@@ -3,68 +3,75 @@ package br.com.fiap.wtccrm.segments.service;
 import br.com.fiap.wtccrm.clients.dto.ClientDTO;
 import br.com.fiap.wtccrm.clients.service.ClientService;
 import br.com.fiap.wtccrm.exception.BusinessException;
+import br.com.fiap.wtccrm.persistence.document.SegmentDocument;
+import br.com.fiap.wtccrm.persistence.repository.ClientRepository;
+import br.com.fiap.wtccrm.persistence.repository.SegmentRepository;
 import br.com.fiap.wtccrm.segments.dto.SegmentDTO;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SegmentService {
 
-    private final Map<String, SegmentDTO> segments = new ConcurrentHashMap<>();
+    private final SegmentRepository segmentRepository;
+    private final ClientRepository clientRepository;
     private final ClientService clientService;
 
-    public SegmentService(ClientService clientService) {
+    public SegmentService(SegmentRepository segmentRepository, ClientRepository clientRepository, ClientService clientService) {
+        this.segmentRepository = segmentRepository;
+        this.clientRepository = clientRepository;
         this.clientService = clientService;
     }
 
     public List<SegmentDTO> findAll() {
-        return segments.values().stream().toList();
+        return segmentRepository.findAll().stream().map(this::toDtoWithCount).toList();
     }
 
     public SegmentDTO findById(String id) {
-        SegmentDTO dto = segments.get(id);
-        if (dto == null) {
-            throw new BusinessException("Segment not found");
-        }
-        return dto;
+        SegmentDocument doc = segmentRepository.findById(id).orElseThrow(() -> new BusinessException("Segment not found"));
+        return toDtoWithCount(doc);
     }
 
     public SegmentDTO create(SegmentDTO request) {
-        SegmentDTO dto = new SegmentDTO(
-                UUID.randomUUID().toString(),
-                request.name(),
-                request.description(),
-                request.color() == null ? "#2F80ED" : request.color(),
-                0,
-                Instant.now());
-        segments.put(dto.id(), dto);
-        return dto;
+        SegmentDocument doc = new SegmentDocument();
+        doc.setId(UUID.randomUUID().toString());
+        doc.setName(request.name());
+        doc.setDescription(request.description());
+        doc.setColor(request.color() == null ? "#2F80ED" : request.color());
+        doc.setCreatedAt(Instant.now());
+        segmentRepository.save(doc);
+        return toDtoWithCount(doc);
     }
 
     public SegmentDTO update(String id, SegmentDTO request) {
-        SegmentDTO current = findById(id);
-        SegmentDTO updated = new SegmentDTO(
-                current.id(),
-                request.name() == null ? current.name() : request.name(),
-                request.description() == null ? current.description() : request.description(),
-                request.color() == null ? current.color() : request.color(),
-                current.clientCount(),
-                current.createdAt());
-        segments.put(id, updated);
-        return updated;
+        SegmentDocument current = segmentRepository.findById(id).orElseThrow(() -> new BusinessException("Segment not found"));
+        current.setName(request.name() == null ? current.getName() : request.name());
+        current.setDescription(request.description() == null ? current.getDescription() : request.description());
+        current.setColor(request.color() == null ? current.getColor() : request.color());
+        segmentRepository.save(current);
+        return toDtoWithCount(current);
     }
 
     public void delete(String id) {
         findById(id);
-        segments.remove(id);
+        segmentRepository.deleteById(id);
     }
 
     public List<ClientDTO> listClients(String segmentId) {
         findById(segmentId);
         return clientService.findBySegment(segmentId);
+    }
+
+    private SegmentDTO toDtoWithCount(SegmentDocument doc) {
+        int count = (int) clientRepository.countBySegmentId(doc.getId());
+        return new SegmentDTO(
+                doc.getId(),
+                doc.getName(),
+                doc.getDescription(),
+                doc.getColor(),
+                count,
+                doc.getCreatedAt());
     }
 }
