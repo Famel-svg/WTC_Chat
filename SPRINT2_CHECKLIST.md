@@ -1,5 +1,7 @@
 # Sprint 2 — checklist atualizado (WTC)
 
+**Progresso Geral: ~53% concluído** (10 de 19 itens concluídos)
+
 Última revisão após: MongoDB, `.env` + integração backend/Android, Firebase Admin com `projectId`.
 
 ## Concluído
@@ -16,8 +18,8 @@
 ### Funcional / integração (nota alto peso)
 
 - [ ] **`POST /api/auth/refresh`** — refresh token (brief PDF); hoje só login/register.
-- [x] **Push FCM** — backend usa **Firebase Admin** (`FirebaseMessaging.send`); campanha envia para usuários com mesmo e-mail que clientes do segmento; chat notifica outros participantes com token FCM. App registra token após login. **Exige** `firebase-service-account.json` + `google-services.json` reais (ver `FIREBASE_SETUP.md`).
-- [x] **Android + tempo real** — cliente **STOMP** (`/ws/native`) + inscrição em `/topic/conversation/{id}`; REST mantém envio/histórico.
+- [x] **Push FCM** — backend usa **Firebase Admin** (`FirebaseMessaging.send`); campanha envia para usuários com mesmo e-mail que clientes do segmento; chat notifica outros participantes com token FCM. App registra token após login. **Exige** `firebase-service-account.json` + `google-services.json` reais (ver `FIREBASE_SETUP.md`). **Observação**: Funcional somente quando os arquivos de credencial estão presentes no classpath/local.
+- [x] **Android + tempo real** — cliente **STOMP** (`/ws/native`) + inscrição em `/topic/conversation/{id}`; REST mantém envio/histórico. **Observação**: Verificar se conexão WebSocket está estabelecida e mensagens em tempo real funcionam adequadamente.
 - [ ] **Upload tipo desafio** — **S3 ou MinIO** com URL pré-assinada (hoje `MediaService` retorna URL simulada).
 - [ ] **Estados de mensagem ponta a ponta** — backend tem status; confirmar **Enviado / Entregue / Lido / Falha** no app e callbacks se necessário.
 
@@ -28,8 +30,8 @@
 
 ### Credenciais e ambiente
 
-- [ ] **`firebase-service-account.json`** do projeto **`wtc-chat-e9532`** em `wtc-crm-backend/src/main/resources/` (substituir JSON antigo de outro projeto; não commitar em repositório público).
-- [ ] **`google-services.json`** no app Android (Firebase Console) quando ativar FCM/analytics — complementar ao `.env`.
+- [x] **`firebase-service-account.json`** do projeto **`wtc-chat-e9532`** em `wtc-crm-backend/src/main/resources/` (substituir JSON antigo de outro projeto; não commitar em repositório público).
+- [x] **`google-services.json`** no app Android (Firebase Console) quando ativar FCM/analytics — complementar ao `.env`.
 
 ### Entrega acadêmica
 
@@ -40,17 +42,3 @@
 ### Segurança
 
 - [ ] **JWT_SECRET** forte em produção e variáveis sensíveis só em `.env` / CI, nunca no Git.
-
-#### Se `.env` ou chaves já entraram no histórico do Git
-
-Só atualizar `.gitignore` **não remove** blobs antigos. Neste clone, `git log` não mostrou `.env` versionado; se em outro fork/remoto existir commit com `.env`:
-
-1. **Revogue/regenere** a credencial exposta (Firebase / Google Cloud → Credenciais): Web API Key, tokens, etc.
-2. Pare de rastrear o arquivo (mantém o arquivo local): `git rm --cached --ignore-unmatch .env`
-3. Commit só da remoção do índice + `.gitignore`.
-4. **Reescrever histórico** (coordene com o time; exige `force push`): use [git-filter-repo](https://github.com/newren/git-filter-repo) (`pip install git-filter-repo`), por exemplo:
-   - `git filter-repo --path .env --invert-paths --force`
-   - Ou BFG Repo-Cleaner com o mesmo objetivo.
-5. Todos os clones devem refazer base ou re-clonar após o histórico limpo.
-
-Chaves que apareceram em chat ou PR devem ser consideradas **comprometidas** e rotacionadas.

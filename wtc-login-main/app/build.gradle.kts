@@ -46,6 +46,7 @@ android {
         buildConfigField("String", "GOOGLE_CLOUD_PROJECT_ID", "\"${env["GOOGLE_CLOUD_PROJECT_ID"] ?: ""}\"")
         buildConfigField("String", "GOOGLE_CLOUD_PROJECT_NUMBER", "\"${env["GOOGLE_CLOUD_PROJECT_NUMBER"] ?: ""}\"")
         buildConfigField("String", "FIREBASE_WEB_API_KEY", "\"${env["FIREBASE_WEB_API_KEY"] ?: ""}\"")
+        buildConfigField("String", "API_BASE_URL", "\"${env["API_BASE_URL"] ?: "http://10.0.2.2:8080/"}\"") // Adicionado
     }
 
     buildTypes {
@@ -112,8 +113,10 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-database-ktx") // Adicionado
 
-    implementation("com.github.NaikSoftware:StompProtocolAndroid:1.6.6")
-    implementation("io.reactivex.rxjava2:rxjava:2.2.21")
-    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+    // As dependências STOMP/RxJava podem ser removidas se não forem mais usadas
+    // implementation("com.github.NaikSoftware:StompProtocolAndroid:1.6.6")
+    // implementation("io.reactivex.rxjava2:rxjava:2.2.21")
+    // implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
 }

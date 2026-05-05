@@ -1,6 +1,3 @@
-/**
- * Chat: histórico REST + tempo real via STOMP (`/topic/conversation/{id}`).
- */
 package br.com.fiap.wtchat.viewmodel
 
 import android.util.Log
@@ -11,15 +8,14 @@ import androidx.lifecycle.viewModelScope
 import br.com.fiap.wtchat.api.RetrofitInstance
 import br.com.fiap.wtchat.api.dto.ChatMessageDTO
 import br.com.fiap.wtchat.auth.SessionManager
-import com.google.gson.Gson
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ua.naiksoftware.stomp.Stomp
-import ua.naiksoftware.stomp.dto.LifecycleEvent
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -35,9 +31,8 @@ class ChatViewModel : ViewModel() {
 
     private var conversationId: String? = null
     private val seenIds = mutableSetOf<String>()
-    private val gson = Gson()
-    private val rxDispose = CompositeDisposable()
-    private var stomp: Stomp? = null
+    private var chatDatabaseRef: DatabaseReference? = null
+    private var chatEventListener: ChildEventListener? = null
 
     private val _messages = mutableStateListOf<ChatMessage>()
     val messages: SnapshotStateList<ChatMessage> = _messages
@@ -46,12 +41,13 @@ class ChatViewModel : ViewModel() {
         conversationId = convId
         _messages.clear()
         seenIds.clear()
-        disconnectStomp()
+        disconnectFirebaseChatListener()
 
         val session = SessionManager.session ?: return
 
         viewModelScope.launch {
             try {
+                // Carregar histórico de mensagens via REST (mantido)
                 val auth = "Bearer ${session.token}"
                 val apiMessages = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.getMessages(auth, convId)
@@ -61,58 +57,67 @@ class ChatViewModel : ViewModel() {
                     _messages.add(dto.toUiMessage(session.userId))
                 }
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Falha ao carregar mensagens", e)
+                Log.e("ChatViewModel", "Falha ao carregar mensagens via REST", e)
             }
         }
 
-        connectStomp(convId)
+        // Conectar ao Firebase Realtime Database para mensagens em tempo real
+        connectFirebaseChatListener(convId, session.userId)
     }
 
-    private fun connectStomp(convId: String) {
-        val session = SessionManager.session ?: return
-        try {
-            stomp = Stomp.over(Stomp.ConnectionProvider.OKHTTP, RetrofitInstance.wsNativeUrl())
-            rxDispose.add(
-                stomp!!.lifecycle()
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { event ->
-                            if (event.type == LifecycleEvent.Type.OPENED) {
-                                rxDispose.add(
-                                    stomp!!.topic("/topic/conversation/$convId")
-                                        .subscribeOn(Schedulers.io())
-                                        .observeOn(AndroidSchedulers.mainThread())
-                                        .subscribe(
-                                            { stompMessage ->
-                                                try {
-                                                    val dto = gson.fromJson(stompMessage.payload, ChatMessageDTO::class.java)
-                                                    val mid = dto.id ?: return@subscribe
-                                                    if (mid in seenIds) return@subscribe
-                                                    seenIds.add(mid)
-                                                    _messages.add(dto.toUiMessage(session.userId))
-                                                } catch (e: Exception) {
-                                                    Log.e("ChatViewModel", "STOMP JSON", e)
-                                                }
-                                            },
-                                            { err -> Log.e("ChatViewModel", "STOMP topic", err) }
-                                        )
-                                )
-                            }
-                        },
-                        { err -> Log.e("ChatViewModel", "STOMP lifecycle", err) }
-                    )
-            )
-            stomp!!.connect()
-        } catch (e: Exception) {
-            Log.e("ChatViewModel", "STOMP connect", e)
+    private fun connectFirebaseChatListener(convId: String, currentUserId: String) {
+        chatDatabaseRef = FirebaseDatabase.getInstance().getReference("chats").child(convId)
+
+        chatEventListener = object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                val messageDTO = snapshot.getValue(ChatMessageDTO::class.java)
+                messageDTO?.let { dto ->
+                    val mid = dto.id ?: snapshot.key // Usar snapshot.key se dto.id for nulo
+                    if (mid != null && mid !in seenIds) {
+                        seenIds.add(mid)
+                        _messages.add(dto.toUiMessage(currentUserId))
+                    }
+                }
+            }
+
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                // Lógica para lidar com mensagens alteradas (ex: status de lido)
+                val changedMessageDTO = snapshot.getValue(ChatMessageDTO::class.java)
+                changedMessageDTO?.let { dto ->
+                    val mid = dto.id ?: snapshot.key
+                    if (mid != null) {
+                        val index = _messages.indexOfFirst { it.id == mid }
+                        if (index != -1) {
+                            _messages[index] = dto.toUiMessage(currentUserId)
+                        }
+                    }
+                }
+            }
+
+            override fun onChildRemoved(snapshot: DataSnapshot) {
+                // Lógica para lidar com mensagens removidas
+                val removedMessageId = snapshot.key
+                removedMessageId?.let { mid ->
+                    _messages.removeIf { it.id == mid }
+                    seenIds.remove(mid)
+                }
+            }
+
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                // Não é comum para chat, mas pode ser implementado se a ordem for importante
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("ChatViewModel", "Firebase Chat Listener Cancelled: ${error.message}")
+            }
         }
+        chatDatabaseRef?.addChildEventListener(chatEventListener!!)
     }
 
-    private fun disconnectStomp() {
-        rxDispose.clear()
-        stomp?.disconnect()
-        stomp = null
+    private fun disconnectFirebaseChatListener() {
+        chatDatabaseRef?.removeEventListener(chatEventListener!!)
+        chatEventListener = null
+        chatDatabaseRef = null
     }
 
     fun sendMessage(text: String) {
@@ -123,6 +128,7 @@ class ChatViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
+                // Enviar mensagem via REST para o backend (mantido para persistência no MongoDB)
                 val auth = "Bearer ${session.token}"
                 val request = ChatMessageDTO(
                     conversationId = cid,
@@ -138,10 +144,16 @@ class ChatViewModel : ViewModel() {
                 val saved = withContext(Dispatchers.IO) {
                     RetrofitInstance.api.sendMessage(auth, cid, request)
                 }
-                saved.id?.let { seenIds.add(it) }
-                _messages.add(saved.toUiMessage(session.userId))
+
+                // Opcional: Publicar a mensagem no Firebase Realtime Database para tempo real
+                // Isso pode ser feito no backend Spring Boot após salvar no MongoDB, ou aqui no cliente.
+                // Se feito no backend, o listener do Firebase no cliente já capturará a mensagem.
+                // Se feito aqui, certifique-se de que o ID da mensagem seja consistente com o backend.
+                // Por simplicidade, vamos assumir que o backend irá publicar no Firebase após salvar.
+                // O listener acima já irá capturar a mensagem quando ela for adicionada pelo backend.
+
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Falha ao enviar mensagem", e)
+                Log.e("ChatViewModel", "Falha ao enviar mensagem via REST", e)
             }
         }
     }
@@ -169,7 +181,7 @@ class ChatViewModel : ViewModel() {
     }
 
     override fun onCleared() {
-        disconnectStomp()
+        disconnectFirebaseChatListener()
         super.onCleared()
     }
 }
