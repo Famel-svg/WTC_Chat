@@ -62,7 +62,21 @@ wtc/
   - Gson (JSON parsing)
   - Material Design Components
 
-## Setup Instructions
+## Setup Instructions (Local Execution)
+
+Para garantir que o aplicativo Android e o backend se comuniquem corretamente em um ambiente local, siga estas etapas:
+
+### 1. Configuração de Rede (Crucial para o APK)
+
+O aplicativo Android precisa saber o endereço IP do seu computador para acessar a API.
+
+1.  **Descubra seu IP Local**: No Windows, use `ipconfig`. No Mac/Linux, use `ifconfig` ou `ip addr`. Procure pelo endereço IPv4 (ex: `192.168.1.15`).
+2.  **Atualize o arquivo `.env`**: Na raiz do projeto, edite o arquivo `.env` e altere a variável `API_BASE_URL`:
+    *   Se estiver usando o **Emulador**: `API_BASE_URL=http://10.0.2.2:8080/`
+    *   Se estiver usando um **Celular Real**: `API_BASE_URL=http://<SEU_IP_LOCAL>:8080/`
+3.  **Mesma Rede**: Certifique-se de que seu celular e seu computador estejam conectados à **mesma rede Wi-Fi**.
+
+### 2. Backend Setup
 
 ### Prerequisites
 - JDK 17
