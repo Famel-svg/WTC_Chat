@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.constrainWidth
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.fiap.wtchat.viewmodel.ChatViewModel
-import br.com.fiap.wtchat.viewmodel.ChatMessage
+import br.com.fiap.wtchat.model.ChatMessage
 
 
 

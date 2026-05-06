@@ -20,12 +20,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-data class ChatMessage(
-    val id: String?,
-    val text: String,
-    val isUser: Boolean,
-    val timestamp: String
-)
+import br.com.fiap.wtchat.model.ChatMessage
 
 class ChatViewModel : ViewModel() {
 
