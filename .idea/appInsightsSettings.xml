@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="br.com.fiap.wtchat" />
+                  <option name="mobileSdkAppId" value="1:71564824671:android:535b23019742e3fe8c8bea" />
+                  <option name="projectId" value="wtc-chat-e9532" />
+                  <option name="projectNumber" value="71564824671" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
