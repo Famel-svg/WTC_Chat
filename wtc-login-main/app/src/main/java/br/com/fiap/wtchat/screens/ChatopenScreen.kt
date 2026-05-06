@@ -1,6 +1,3 @@
-/**
- * UI do chat em bolhas; integra [ChatViewModel] para carregar/enviar mensagens via API REST.
- */
 package br.com.fiap.wtchat.screens
 
 import androidx.navigation.NavController
@@ -9,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,13 +28,11 @@ import androidx.navigation.compose.rememberNavController
 import br.com.fiap.wtchat.ui.theme.WTChatTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.fiap.wtchat.viewmodel.ChatViewModel
+import br.com.fiap.wtchat.model.ChatUiModel
 
 val colorUserBubble = Color(0xFFEA5020)
 val colorOtherBubble = Color(0xFF093666)
-val colorOtherText = Color.White
 val colorBackgroundChat = Color(0xFFF5F5F5)
-
-
 
 data class ContactDetails(
     val name: String,
@@ -44,18 +40,15 @@ data class ContactDetails(
     val photoId: Int
 )
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatTopBar(contact: ContactDetails, navController: NavController) {
     TopAppBar(
         modifier = Modifier.height(125.dp),
-
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color(0xFF003366),
             titleContentColor = Color.White
         ),
-
         title = {
             Box(
                 modifier = Modifier.fillMaxSize().padding(top = 25.dp),
@@ -118,8 +111,6 @@ fun ChatTopBar(contact: ContactDetails, navController: NavController) {
     )
 }
 
-
-
 @Composable
 fun ChatInputBar(onSendMessage: (String) -> Unit) {
     var currentText by remember { mutableStateOf("") }
@@ -132,7 +123,6 @@ fun ChatInputBar(onSendMessage: (String) -> Unit) {
             .padding(vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         IconButton(onClick = { }) {
             Icon(Icons.Default.Add, contentDescription = "Anexar", tint = Color.White)
         }
@@ -142,7 +132,6 @@ fun ChatInputBar(onSendMessage: (String) -> Unit) {
             onValueChange = { currentText = it },
             placeholder = { Text("Envie uma mensagem", color = Color.Gray) },
             trailingIcon = {
-
                 IconButton(onClick = {
                     if (currentText.isNotBlank()) {
                         onSendMessage(currentText)
@@ -167,7 +156,6 @@ fun ChatInputBar(onSendMessage: (String) -> Unit) {
         )
     }
 }
-
 
 @Composable
 fun ChatBubble(
@@ -231,11 +219,6 @@ fun ChatBubble(
     }
 }
 
-
-
-/**
- * @param conversationId identificador da conversa (rota `Chat/{conversationId}`).
- */
 @Composable
 fun ChatScreen(
     navController: NavController,
@@ -254,40 +237,31 @@ fun ChatScreen(
         topBar = { ChatTopBar(contact = jm, navController = navController) },
         bottomBar = { ChatInputBar(onSendMessage = viewModel::sendMessage) }
     ) { paddingValues ->
-
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(colorBackgroundChat)
         ) {
-
             Image(
                 painter = painterResource(id = R.drawable.background_chat),
                 contentDescription = "Fundo do Chat",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             )
-
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
                 reverseLayout = true,
-
-
                 verticalArrangement = Arrangement.Top
             ) {
-
-
                 val messageList = viewModel.messages.toList().reversed()
-                items(messageList) { message ->
+                items(messageList) { message: ChatUiModel ->
                     ChatBubble(
-                        message = message.text,
-                        isUser = message.isUser,
-                        time = message.timestamp,
+                        message = message.messageText,
+                        isUser = message.isSentByUser,
+                        time = message.formattedTime,
                         isRead = true
                     )
                 }
@@ -295,8 +269,6 @@ fun ChatScreen(
         }
     }
 }
-
-
 
 @Preview(showBackground = true, device = "id:pixel_6")
 @Composable
