@@ -1,17 +1,9 @@
 package br.com.fiap.wtccrm.persistence.document;
 
 import java.time.Instant;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "messages")
 public class MessageDocument {
-
-    @Id
     private String id;
-
-    @Indexed
     private String conversationId;
 
     private String senderId;
@@ -94,3 +86,4 @@ public class MessageDocument {
         this.sentAt = sentAt;
     }
 }
+

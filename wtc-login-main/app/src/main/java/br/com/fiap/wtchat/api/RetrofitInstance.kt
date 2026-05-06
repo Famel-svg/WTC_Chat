@@ -8,11 +8,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
     // Emulador Android -> localhost do seu PC: 10.0.2.2
-    private val BASE_URL = BuildConfig.API_BASE_URL // Alterado
+    private val BASE_URL: String = BuildConfig.API_BASE_URL // Alterado
 
     /** Base URL do WebSocket STOMP (Spring `/ws/native` ). */
     fun wsNativeUrl(): String {
-        val b = BASE_URL.trimEnd("/")
+        val b = BASE_URL.trimEnd('/')
         val ws = when {
             b.startsWith("https://" ) -> "wss://" + b.removePrefix("https://" )
             b.startsWith("http://" ) -> "ws://" + b.removePrefix("http://" )

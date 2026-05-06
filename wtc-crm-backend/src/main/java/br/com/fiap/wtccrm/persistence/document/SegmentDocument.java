@@ -1,13 +1,8 @@
 package br.com.fiap.wtccrm.persistence.document;
 
 import java.time.Instant;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "segments")
 public class SegmentDocument {
-
-    @Id
     private String id;
 
     private String name;
@@ -55,3 +50,4 @@ public class SegmentDocument {
         this.createdAt = createdAt;
     }
 }
+

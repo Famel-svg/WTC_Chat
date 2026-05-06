@@ -10,6 +10,9 @@ import br.com.fiap.wtccrm.persistence.repository.UserRepository;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.UUID;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -27,7 +32,6 @@ public class AuthService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
-        seedOperator();
     }
 
     public LoginResponseDTO login(LoginRequestDTO request) {
@@ -70,16 +74,26 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    private void seedOperator() {
-        if (userRepository.existsByEmailIgnoreCase("operator@wtc.com")) {
+    @PostConstruct
+    void seedOperator() {
+        try {
+            seedUserIfMissing("operator@wtc.com", "123456", "WTC Operator", "OPERATOR");
+            seedUserIfMissing("admin", "admin", "Admin", "OPERATOR");
+        } catch (Exception e) {
+            LOGGER.warn("Seed do operador padrão não executado: {}", e.getMessage());
+        }
+    }
+
+    private void seedUserIfMissing(String login, String password, String name, String role) {
+        if (userRepository.existsByEmailIgnoreCase(login)) {
             return;
         }
         UserDocument user = new UserDocument();
         user.setId(UUID.randomUUID().toString());
-        user.setName("WTC Operator");
-        user.setEmail("operator@wtc.com");
-        user.setRole("OPERATOR");
-        user.setPasswordHash(passwordEncoder.encode("123456"));
+        user.setName(name);
+        user.setEmail(login);
+        user.setRole(role);
+        user.setPasswordHash(passwordEncoder.encode(password));
         user.setCreatedAt(Instant.now());
         userRepository.save(user);
     }

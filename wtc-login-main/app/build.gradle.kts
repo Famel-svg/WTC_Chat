@@ -46,7 +46,7 @@ android {
         buildConfigField("String", "GOOGLE_CLOUD_PROJECT_ID", "\"${env["GOOGLE_CLOUD_PROJECT_ID"] ?: ""}\"")
         buildConfigField("String", "GOOGLE_CLOUD_PROJECT_NUMBER", "\"${env["GOOGLE_CLOUD_PROJECT_NUMBER"] ?: ""}\"")
         buildConfigField("String", "FIREBASE_WEB_API_KEY", "\"${env["FIREBASE_WEB_API_KEY"] ?: ""}\"")
-        buildConfigField("String", "API_BASE_URL", "\"${env["API_BASE_URL"] ?: "http://10.0.2.2:8080/"}\"") // Adicionado
+        buildConfigField("String", "API_BASE_URL", "\"${env["API_BASE_URL"] ?: "http://10.0.2.2:8082/"}\"") // Adicionado
     }
 
     buildTypes {

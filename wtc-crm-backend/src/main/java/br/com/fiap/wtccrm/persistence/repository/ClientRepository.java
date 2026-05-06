@@ -1,12 +1,25 @@
 package br.com.fiap.wtccrm.persistence.repository;
 
+import com.google.cloud.firestore.Firestore;
+
 import br.com.fiap.wtccrm.persistence.document.ClientDocument;
 import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-public interface ClientRepository extends MongoRepository<ClientDocument, String> {
+@Repository
+public class ClientRepository extends FirestoreCollectionRepository<ClientDocument> {
 
-    List<ClientDocument> findBySegmentId(String segmentId);
+    public ClientRepository(Firestore firestore) {
+        super("clients", ClientDocument.class, firestore);
+    }
 
-    long countBySegmentId(String segmentId);
+    public List<ClientDocument> findBySegmentId(String segmentId) {
+        return findByField("segmentId", segmentId);
+    }
+
+    public long countBySegmentId(String segmentId) {
+        return findBySegmentId(segmentId).size();
+    }
 }
+
+

@@ -1,10 +1,24 @@
 package br.com.fiap.wtccrm.persistence.repository;
 
+import com.google.cloud.firestore.Firestore;
+
 import br.com.fiap.wtccrm.persistence.document.MessageDocument;
+import java.util.Comparator;
 import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-public interface MessageRepository extends MongoRepository<MessageDocument, String> {
+@Repository
+public class MessageRepository extends FirestoreCollectionRepository<MessageDocument> {
 
-    List<MessageDocument> findByConversationIdOrderBySentAtAsc(String conversationId);
+    public MessageRepository(Firestore firestore) {
+        super("messages", MessageDocument.class, firestore);
+    }
+
+    public List<MessageDocument> findByConversationIdOrderBySentAtAsc(String conversationId) {
+        return findByField("conversationId", conversationId).stream()
+                .sorted(Comparator.comparing(MessageDocument::getSentAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+    }
 }
+
+

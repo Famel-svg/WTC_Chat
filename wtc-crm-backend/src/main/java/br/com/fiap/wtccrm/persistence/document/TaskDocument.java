@@ -1,23 +1,13 @@
 package br.com.fiap.wtccrm.persistence.document;
 
 import java.time.Instant;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "tasks")
 public class TaskDocument {
-
-    @Id
     private String id;
 
     private String title;
     private String description;
-
-    @Indexed
     private String clientId;
-
-    @Indexed
     private String operatorId;
 
     private String status;
@@ -106,3 +96,4 @@ public class TaskDocument {
         this.updatedAt = updatedAt;
     }
 }
+

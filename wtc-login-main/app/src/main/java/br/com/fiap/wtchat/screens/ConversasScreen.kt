@@ -82,7 +82,7 @@ fun ConversasScreen(
                     lastMessage = dto.lastMessageContent ?: "",
                     timestamp = dto.lastMessageAt ?: "",
                     unreadCount = 0,
-                    profilePicId = R.drawable.image_5
+                    profilePicId = R.drawable.image5
                 )
             }
         } catch (e: Exception) {

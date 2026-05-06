@@ -1,13 +1,8 @@
 package br.com.fiap.wtccrm.persistence.document;
 
 import java.time.Instant;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "campaigns")
 public class CampaignDocument {
-
-    @Id
     private String id;
 
     private String title;
@@ -109,3 +104,4 @@ public class CampaignDocument {
         this.recipientCount = recipientCount;
     }
 }
+

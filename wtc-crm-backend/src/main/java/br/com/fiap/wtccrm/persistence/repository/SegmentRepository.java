@@ -1,6 +1,16 @@
 package br.com.fiap.wtccrm.persistence.repository;
 
-import br.com.fiap.wtccrm.persistence.document.SegmentDocument;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import com.google.cloud.firestore.Firestore;
 
-public interface SegmentRepository extends MongoRepository<SegmentDocument, String> {}
+import br.com.fiap.wtccrm.persistence.document.SegmentDocument;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class SegmentRepository extends FirestoreCollectionRepository<SegmentDocument> {
+
+    public SegmentRepository(Firestore firestore) {
+        super("segments", SegmentDocument.class, firestore);
+    }
+}
+
+

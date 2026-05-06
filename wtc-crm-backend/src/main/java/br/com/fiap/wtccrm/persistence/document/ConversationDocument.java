@@ -2,13 +2,8 @@ package br.com.fiap.wtccrm.persistence.document;
 
 import java.time.Instant;
 import java.util.List;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "conversations")
 public class ConversationDocument {
-
-    @Id
     private String id;
 
     private String type;
@@ -65,3 +60,4 @@ public class ConversationDocument {
         this.lastMessageAt = lastMessageAt;
     }
 }
+

@@ -1,6 +1,16 @@
 package br.com.fiap.wtccrm.persistence.repository;
 
-import br.com.fiap.wtccrm.persistence.document.CampaignDocument;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import com.google.cloud.firestore.Firestore;
 
-public interface CampaignRepository extends MongoRepository<CampaignDocument, String> {}
+import br.com.fiap.wtccrm.persistence.document.CampaignDocument;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class CampaignRepository extends FirestoreCollectionRepository<CampaignDocument> {
+
+    public CampaignRepository(Firestore firestore) {
+        super("campaigns", CampaignDocument.class, firestore);
+    }
+}
+
+

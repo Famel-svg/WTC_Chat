@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="WTChat.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-04-28T02:13:11.510518800Z">
+        <DropdownSelection timestamp="2026-05-06T23:12:37.898784200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\rafae\.android\avd\Pixel_9_Pro.avd" />

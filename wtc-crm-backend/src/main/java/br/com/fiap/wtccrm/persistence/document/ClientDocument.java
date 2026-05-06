@@ -1,27 +1,17 @@
 package br.com.fiap.wtccrm.persistence.document;
 
 import java.time.Instant;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "clients")
 public class ClientDocument {
-
-    @Id
     private String id;
 
     private String name;
-
-    @Indexed
     private String email;
 
     private String phone;
     private String category;
     private int score;
     private String status;
-
-    @Indexed
     private String segmentId;
 
     private String avatarUrl;
@@ -116,3 +106,4 @@ public class ClientDocument {
         this.updatedAt = updatedAt;
     }
 }
+

@@ -1,19 +1,11 @@
 package br.com.fiap.wtccrm.persistence.document;
 
 import java.time.Instant;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "users")
 public class UserDocument {
-
-    @Id
     private String id;
 
     private String name;
-
-    @Indexed(unique = true)
     private String email;
 
     private String passwordHash;
@@ -77,3 +69,4 @@ public class UserDocument {
         this.fcmToken = fcmToken;
     }
 }
+
