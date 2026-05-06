@@ -291,7 +291,7 @@ fun ChatScreen(
             ) {
 
 
-                items(viewModel.messages.toList().reversed()) { message ->
+                items(viewModel.messages.toList().reversed()) { message: ChatMessage ->
                     ChatBubble(
                         message = message.text,
                         isUser = message.isUser,
