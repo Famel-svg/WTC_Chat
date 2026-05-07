@@ -20,11 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -187,11 +187,11 @@ fun CardDeReuniao(
 fun MessageHeader(navController: NavController) {
     val actions = listOf(
 
-        Triple("Criar grupo", Icons.Default.Group, "criar_grupo_route"),
-        Triple("Criar tarefa", Icons.Default.CalendarToday, "tarefas"),
-        Triple("Disparo", Icons.Default.Send, "disparo_route"),
-        Triple("Criar ligação", Icons.Default.Call, "ligacao_route"),
-        Triple("promoção", Icons.Default.Campaign, "promocao_route")
+        Triple("Criar grupo", Icons.Default.Group, "criar_grupo"),
+        Triple("Criar tarefa", Icons.Default.CalendarToday, "criar_tarefa"),
+        Triple("Disparo", Icons.AutoMirrored.Filled.Send, "criar_disparo"),
+        Triple("Criar ligação", Icons.Default.Call, "criar_ligacao"),
+        Triple("Promoção", Icons.Default.Campaign, "criar_promocao")
     )
 
     LazyRow(
@@ -229,5 +229,3 @@ fun MessageHeader(navController: NavController) {
         }
     }
 }
-
-

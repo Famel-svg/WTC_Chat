@@ -47,13 +47,32 @@ fun AppNavigation() {
             CriarListasScreen(navController = navController)
         }
 
+        composable(route = "criar_grupo") {
+            CriarGrupoScreen(navController = navController)
+        }
+
+        composable(route = "criar_tarefa") {
+            CriarTarefaScreen(navController = navController)
+        }
+
+        composable(route = "criar_disparo") {
+            CriarDisparoScreen(navController = navController)
+        }
+
+        composable(route = "criar_ligacao") {
+            CriarLigacaoScreen(navController = navController)
+        }
+
+        composable(route = "criar_promocao") {
+            CriarPromocaoScreen(navController = navController)
+        }
+
         composable(route = "Ajustes") {
             ConfiguracoesScreen(navController = navController)
         }
 
-        // Placeholder until dedicated TaskList screen is integrated.
         composable(route = "Tarefas") {
-            MainScreen(navController = navController)
+            TarefasScreen(navController = navController)
         }
 
 
