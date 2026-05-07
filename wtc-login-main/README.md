@@ -1,80 +1,99 @@
-# WTC Chat (Android) — Integração com API CRM
+# WTC Chat Android
 
-Aplicativo **Kotlin** + **Jetpack Compose** para login, navegação principal, conversas e chat, consumindo a API do backend **WTC CRM** (`wtc-crm-backend`) via **Retrofit** e sessão JWT em memória.
+Aplicativo Android em **Kotlin + Jetpack Compose** integrado ao backend `wtc-crm-backend` por Retrofit. O app realiza login JWT, navega pelas telas principais, lista conversas e envia mensagens.
 
 ## Requisitos
 
-| Item | Versão |
-|------|--------|
-| Android Studio | Ladybug ou superior recomendado |
-| JDK | 11+ (conforme `app/build.gradle.kts`) |
-| Android SDK | Instalado via Android Studio |
-| Backend | Spring Boot rodando (ver README do `wtc-crm-backend`) |
+- Android Studio
+- Android SDK configurado
+- Backend rodando em `localhost:8082`
+- `google-services.json` do projeto Firebase `wtc-chat-e9532` em `app/google-services.json`
 
-## Firebase / Google (`.env`)
+## URL da API
 
-Na **raiz do repositório** (pasta pai de `wtc-login-main`), mantenha o arquivo **`.env`** com `GOOGLE_CLOUD_PROJECT_ID`, `FIREBASE_WEB_API_KEY`, etc. No build, o Gradle lê esse arquivo e gera campos em **`BuildConfig`**; use `br.com.fiap.wtchat.config.FirebaseEnv` no código quando for integrar o SDK cliente (FCM, etc.).
+O Gradle le a variavel `API_BASE_URL` do `.env` localizado na raiz do repositorio.
 
-## Configurar URL da API
+Para emulador Android:
 
-O cliente HTTP está em `app/src/main/java/br/com/fiap/wtchat/api/RetrofitInstance.kt`:
-
-| Ambiente | `BASE_URL` típica |
-|----------|-------------------|
-| **Emulador Android** | `http://10.0.2.2:8080/` (mapeia para `localhost` da máquina host) |
-| **Dispositivo físico (mesma rede Wi‑Fi)** | `http://<IP_DO_PC>:8080/` |
-| **Produção (HTTPS)** | URL do deploy (Railway, Render, etc.) |
-
-Altere a constante `BASE_URL` e sincronize o Gradle.
-
-> Em HTTP local, o app usa `usesCleartextTraffic` no `AndroidManifest.xml` **apenas para desenvolvimento**. Em produção, prefira HTTPS e remova cleartext.
-
-## Fluxo de autenticação
-
-1. `LoginScreen` chama `POST /api/auth/login` com e-mail e senha.  
-2. A resposta (`token`, `userId`, `role`, `name`) é guardada em `SessionManager` (`auth/SessionState.kt`).  
-3. Chamadas autenticadas enviam o header `Authorization: Bearer <token>` (ex.: `WtcApiService`, `ChatViewModel`).
-
-Usuário de teste no backend seed: `operator@wtc.com` / `123456`.
-
-## Módulos principais no código
-
-| Caminho | Função |
-|---------|--------|
-| `api/RetrofitInstance.kt` | Instância singleton do Retrofit + OkHttp (log em debug). |
-| `api/WtcApiService.kt` | Interface Retrofit: login, conversas, mensagens. |
-| `api/dto/` | DTOs alinhados ao JSON do backend (Gson). |
-| `auth/SessionState.kt` | Estado de sessão e `SessionManager`. |
-| `screens/LoginScreen.kt` | UI de login + corrotina de login na API. |
-| `screens/ConversasScreen.kt` | Lista de conversas (`GET /api/chat/conversations`). |
-| `screens/ChatopenScreen.kt` | Tela de chat + `LaunchedEffect` para `conversationId`. |
-| `viewmodel/ChatViewModel.kt` | Carrega e envia mensagens via API. |
-| `navigation/AppNavigation.kt` | Rotas Compose, inclusive `Chat/{conversationId}`. |
-
-## Navegação
-
-Rotas registradas em `AppNavigation.kt`: `Login`, `Principal`, `Conversas`, `Chat/{conversationId}`, `criar_lista`, `Ajustes`, `Tarefas` (placeholder).
-
-## Como compilar e instalar
-
-1. Abra a pasta `wtc-login-main` no Android Studio.  
-2. Crie/edite `local.properties` com `sdk.dir=...` (o Android Studio costuma gerar automaticamente).  
-3. **Run** no emulador ou dispositivo.  
-
-Build via linha de comando (com SDK configurado):
-
-```bash
-cd wtc-login-main
-gradlew.bat assembleDebug
+```env
+API_BASE_URL=http://10.0.2.2:8082/
 ```
 
-APK de debug: `app/build/outputs/apk/debug/`
+Para celular fisico na mesma rede:
 
-## Observações
+```env
+API_BASE_URL=http://<IP_DO_PC>:8082/
+```
 
-- Se **não houver conversas** no backend, a lista em `Conversas` pode ficar vazia até criar conversas pela API (`POST /api/chat/conversations`).  
-- WebSocket STOMP pode ser adicionado depois no `ChatViewModel` para tempo real; hoje o chat usa **REST** para listar e enviar mensagens.
+Depois de alterar o `.env`, sincronize/recompile o app no Android Studio.
 
-## Licença / projeto acadêmico
+## Login de Teste
 
-Projeto FIAP — integração com WTC CRM Platform Sprint 2.
+```text
+Usuario: admin
+Senha: admin
+```
+
+Tambem existe:
+
+```text
+Usuario: operator@wtc.com
+Senha: 123456
+```
+
+## Fluxo de Autenticacao
+
+1. `LoginScreen` envia `POST /api/auth/login`.
+2. O backend retorna `token`, `userId`, `role` e `name`.
+3. `SessionManager` guarda a sessao em memoria.
+4. Chamadas autenticadas enviam `Authorization: Bearer <token>`.
+5. `FcmRegistrar` envia o token FCM do dispositivo ao backend.
+
+## Modulos Principais
+
+| Caminho | Responsabilidade |
+| --- | --- |
+| `api/RetrofitInstance.kt` | Configura Retrofit, OkHttp e `API_BASE_URL`. |
+| `api/WtcApiService.kt` | Contrato REST com o backend. |
+| `api/dto/` | DTOs de login, conversas e mensagens. |
+| `auth/SessionState.kt` | Estado de sessao JWT. |
+| `fcm/` | Registro e recebimento de notificacoes FCM. |
+| `navigation/AppNavigation.kt` | Rotas Compose. |
+| `screens/LoginScreen.kt` | Tela de login. |
+| `screens/ConversasScreen.kt` | Lista de conversas via API. |
+| `screens/ChatopenScreen.kt` | Tela de chat. |
+| `viewmodel/ChatViewModel.kt` | Carrega e envia mensagens. |
+
+## Rotas do App
+
+- `Login`
+- `Principal`
+- `Conversas`
+- `Chat/{conversationId}`
+- `criar_lista`
+- `Ajustes`
+- `Tarefas`
+
+## Build
+
+Pelo Android Studio, abra esta pasta e clique em **Run**.
+
+Via terminal:
+
+```powershell
+cd E:\Programacao\wtc\wtc-login-main
+.\gradlew.bat :app:assembleDebug
+```
+
+APK de debug:
+
+```text
+app/build/outputs/apk/debug/
+```
+
+## Observacoes
+
+- Em emulador, `10.0.2.2` aponta para o `localhost` do PC.
+- Em dispositivo fisico, use o IP local do PC.
+- O app usa HTTP claro (`usesCleartextTraffic=true`) apenas para desenvolvimento local.
+- Se nao houver conversas no Firestore/backend, a tela de conversas pode aparecer vazia.

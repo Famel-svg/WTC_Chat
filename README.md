@@ -1,200 +1,171 @@
 # WTC CRM Chat Application
 
-## Overview
+Projeto acadêmico FIAP Sprint 2 para uma plataforma de comunicação e CRM do World Trade Center Sao Paulo. O sistema e composto por uma API REST em Spring Boot e um aplicativo Android nativo em Kotlin/Jetpack Compose.
 
-WTC CRM Chat is a full-stack messaging application built as a FIAP academic project for the World Trade Center São Paulo (WTC). The application consists of:
+## Visao Geral
 
-- **Backend**: Java 17 + Spring Boot 3 REST API with MongoDB persistence
-- **Frontend**: Android application with real-time chat capabilities
-- **Features**: Authentication (JWT), CRM modules, real-time messaging, push notifications via Firebase Cloud Messaging (FCM), file upload, and audit logging
+- **Backend:** Java 17, Spring Boot 3, Spring Security, JWT, WebSocket/STOMP e Firebase Admin SDK.
+- **Banco principal:** Firebase Firestore, usando colecoes NoSQL para usuarios, clientes, segmentos, conversas, mensagens, campanhas, tarefas e auditoria.
+- **App Android:** Kotlin, Jetpack Compose, Retrofit, Firebase Cloud Messaging e Firebase Realtime Database listener para chat.
+- **Integracao:** O app consome a API REST do backend e envia o token JWT nas chamadas autenticadas.
 
-## Project Structure
+## Estrutura
 
-```
+```text
 wtc/
-├── wtc-crm-backend/          # Spring Boot backend application
-├── wtc-login-main/           # Android client application
-├── .env.example              # Environment variables template
-├── FIREBASE_SETUP.md         # Firebase configuration guide
-├── SPRINT2_CHECKLIST.md      # Development progress tracking
-└── README.md                 # This file
+├── wtc-crm-backend/          # API Spring Boot
+├── wtc-login-main/           # App Android Kotlin/Compose
+├── .env.example              # Modelo de variaveis locais
+└── README.md
 ```
 
-## Key Features
+## Requisitos
 
-### Backend (`wtc-crm-backend`)
-- **Authentication**: JWT-based login/registration with role-based access control
-- **CRM Modules**: Clients, segments, campaigns, tasks, profile 360°, media management
-- **Real-time Chat**: WebSocket/STOMP implementation for instant messaging
-- **Push Notifications**: Firebase Cloud Messaging integration via Admin SDK
-- **Audit Logging**: Comprehensive activity tracking with `@Auditable` aspect
-- **API Documentation**: Swagger/OpenAPI available at `/swagger-ui.html`
-- **Database**: MongoDB with collections for users, clients, conversations, messages, etc.
+- JDK 17+
+- Maven 3.9+ ou Maven embutido no IntelliJ
+- Android Studio
+- Projeto Firebase `wtc-chat-e9532`
+- Service account do Firebase para o backend
+- `google-services.json` do Firebase para o app Android
 
-### Android Client (`wtc-login-main`)
-- **Authentication**: Login/register with JWT token storage
-- **Real-time Messaging**: STOMP client subscribed to conversation topics
-- **Push Notifications**: FCM token registration and handling
-- **Media Support**: Image upload/download capabilities
-- **UI**: Modern Material Design interface
+## Configuracao Local
 
-## Technology Stack
+Crie um `.env` na raiz do repositorio a partir de `.env.example`.
 
-### Backend
-- **Language**: Java 17
-- **Framework**: Spring Boot 3
-- **Database**: MongoDB
-- **Authentication**: JWT (HS256)
-- **Messaging**: WebSocket/STOMP with SockJS fallback
-- **Push Notifications**: Firebase Admin SDK
-- **API Docs**: SpringDoc OpenAPI (Swagger)
-- **Build Tool**: Maven
-- **Containerization**: Docker Compose
+Valores esperados para desenvolvimento local com emulador Android:
 
-### Android
-- **Language**: Kotlin
-- **Minimum SDK**: 21
-- **Architecture**: MVVM
-- **Dependencies**:
-  - Firebase Cloud Messaging
-  - STOMP over WebSocket (STOMP-Android)
-  - Glide (image loading)
-  - Gson (JSON parsing)
-  - Material Design Components
+```env
+GOOGLE_CLOUD_PROJECT_ID=wtc-chat-e9532
+GOOGLE_CLOUD_PROJECT_NUMBER=<numero-do-projeto>
+FIREBASE_WEB_API_KEY=<web-api-key>
+FIREBASE_CONFIG_PATH=classpath:wtc-chat-e9532-service-account.json
+JWT_SECRET=<segredo-com-pelo-menos-32-caracteres>
+JWT_EXPIRATION_MS=28800000
+API_BASE_URL=http://10.0.2.2:8082/
+```
 
-## Setup Instructions (Local Execution)
+> O arquivo `.env` e as chaves Firebase nao devem ser versionados.
 
-Para garantir que o aplicativo Android e o backend se comuniquem corretamente em um ambiente local, siga estas etapas:
+## Firebase
 
-### 1. Configuração de Rede (Crucial para o APK)
+O app Android usa:
 
-O aplicativo Android precisa saber o endereço IP do seu computador para acessar a API.
+```text
+wtc-login-main/app/google-services.json
+```
 
-1.  **Descubra seu IP Local**: No Windows, use `ipconfig`. No Mac/Linux, use `ifconfig` ou `ip addr`. Procure pelo endereço IPv4 (ex: `192.168.1.15`).
-2.  **Atualize o arquivo `.env`**: Na raiz do projeto, edite o arquivo `.env` e altere a variável `API_BASE_URL`:
-    *   Se estiver usando o **Emulador**: `API_BASE_URL=http://10.0.2.2:8080/`
-    *   Se estiver usando um **Celular Real**: `API_BASE_URL=http://<SEU_IP_LOCAL>:8080/`
-3.  **Mesma Rede**: Certifique-se de que seu celular e seu computador estejam conectados à **mesma rede Wi-Fi**.
+O backend usa uma service account do mesmo projeto Firebase:
 
-### 2. Backend Setup
+```text
+wtc-crm-backend/src/main/resources/wtc-chat-e9532-service-account.json
+```
 
-### Prerequisites
-- JDK 17
-- Maven 3.9+
-- Docker & Docker Compose (for MongoDB)
-- Android Studio (for client)
-- Firebase project (for push notifications)
+Para gerar:
 
-### Backend Setup
+1. Abra o Firebase Console.
+2. Entre no projeto `wtc-chat-e9532`.
+3. Va em **Project settings > Service accounts**.
+4. Gere uma nova chave privada.
+5. Salve com o nome `wtc-chat-e9532-service-account.json` em `wtc-crm-backend/src/main/resources/`.
 
-1. **Environment Configuration**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your Firebase/Google Cloud credentials
-   ```
+## Executando o Backend
 
-2. **MongoDB**
-   ```bash
-   # From wtc-crm-backend directory
-   docker compose up -d
-   ```
+```powershell
+cd E:\Programacao\wtc\wtc-crm-backend
+mvn spring-boot:run
+```
 
-3. **Firebase Service Account**
-   - Download `firebase-service-account.json` from Firebase Console
-   - Place in `wtc-crm-backend/src/main/resources/`
+Porta padrao:
 
-4. **Run Application**
-   ```bash
-   cd wtc-crm-backend
-   mvn spring-boot:run
-   ```
-   API available at: http://localhost:8080
-   Swagger UI: http://localhost:8080/swagger-ui.html
+```text
+http://localhost:8082
+```
 
-### Android Setup
+Swagger/OpenAPI:
 
-1. **Firebase Configuration**
-   - Follow instructions in [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
-   - Add SHA-1 fingerprint to Firebase project
-   - Download `google-services.json` and place in `wtc-login-main/app/`
+```text
+http://localhost:8082/swagger-ui.html
+http://localhost:8082/api-docs
+```
 
-2. **Build & Run**
-   - Open project in Android Studio
-   - Build and run on emulator/device
+## Executando o App Android
 
-## API Endpoints Summary
+1. Abra `wtc-login-main` no Android Studio.
+2. Sincronize o Gradle.
+3. Rode em um emulador Android.
+4. Mantenha o backend rodando em `localhost:8082`.
 
-### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-- `PUT /api/auth/users/{id}/fcm-token` - Register FCM token
+No emulador, o app usa:
 
-### Core Modules
-- `GET/POST/PUT/DELETE /api/clients` - Client management
-- `GET/POST/PUT/DELETE /api/segments` - Customer segmentation
-- `GET/POST/PUT/DELETE /api/campaigns` - Marketing campaigns
-- `GET/POST/PUT/DELETE /api/tasks` - Task management
-- `GET/POST /api/profile` - User profile 360°
-- `GET/POST /api/media` - File upload
+```text
+http://10.0.2.2:8082/
+```
 
-### Chat
-- `GET/POST /api/chat/conversations` - Conversation management
-- `GET/POST /api/chat/conversations/{id}/messages` - Message handling
-- WebSocket: `/ws/chat` (STOMP over SockJS)
+Em celular fisico, altere `API_BASE_URL` no `.env` para:
 
-## Development Progress
+```text
+http://<IP_DO_PC>:8082/
+```
 
-See [SPRINT2_CHECKLIST.md](SPRINT2_CHECKLIST.md) for detailed Sprint 2 objectives and completion status.
+Depois recompile o app.
 
-### Completed
-- ✅ Backend Java 17 + Spring Boot with JWT, Swagger, and all CRM modules
-- ✅ MongoDB persistence with all required collections
-- ✅ Environment configuration via `.env` with DotenvBootstrap
-- ✅ Firebase Admin SDK integration (conditional)
-- ✅ Android BuildConfig integration with `.env` variables
-- ✅ Real-time chat via WebSocket/STOMP
-- ✅ FCM push notification backend implementation
+## Credenciais de Teste
 
-### Pending
-- ⏳ Refresh token endpoint (`POST /api/auth/refresh`)
-- ⏳ Media upload to S3/MinIO (currently simulated)
-- ⏳ Message status tracking (Sent/Delivered/Read/Failed)
-- ⏳ Academic deliverables: ZIP packages, APK, PDF/PPT documentation
-- ⏳ Security hardening: strong JWT_SECRET, credentials management
+Conta administrativa criada automaticamente no Firestore:
 
-## Firebase Configuration
+```text
+Usuario: admin
+Senha: admin
+Role: OPERATOR
+```
 
-Refer to [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for detailed setup instructions covering:
-1. Firebase Console project setup (`wtc-chat-e9532`)
-2. Android app configuration (`google-services.json`)
-3. Service account for backend (`firebase-service-account.json`)
-4. Cloud Messaging setup
-5. SHA-1 fingerprint registration for Google Sign-In
+Conta adicional:
 
-## Important Notes
+```text
+Usuario: operator@wtc.com
+Senha: 123456
+Role: OPERATOR
+```
 
-### Security
-- Never commit `.env` or Firebase service account keys to version control
-- Use strong JWT_SECRET in production environments
-- Firebase credentials should be managed via CI/CD secrets or equivalent
+## Modulos da API
 
-### Database
-- MongoDB collections are automatically created on first use
-- Indexes may need to be added for production performance optimization
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `PUT /api/auth/users/{id}/fcm-token`
+- `GET/POST/PUT/DELETE /api/clients`
+- `GET/POST/PUT/DELETE /api/segments`
+- `GET/POST/PUT/DELETE /api/campaigns`
+- `GET/POST/PUT/DELETE /api/tasks`
+- `GET /api/profile360/{clientId}`
+- `POST /api/media/upload`
+- `GET/POST /api/chat/conversations`
+- `GET/POST /api/chat/conversations/{id}/messages`
+- WebSocket/STOMP: `/ws/chat`
 
-### Testing
-- Test user credentials:
-  - Email: `operator@wtc.com`
-  - Password: `123456`
-  - Role: `OPERATOR`
+## Build
 
-## License
+Backend:
 
-Academic project developed for FIAP - Faculdade de Informática e Administração Paulista.
+```powershell
+cd wtc-crm-backend
+mvn -DskipTests package
+```
 
-## Acknowledgments
+Android:
 
-- FIAP professors and mentors
-- Firebase and Google Cloud platforms
-- Spring Boot and MongoDB communities
-- Android open-source libraries
+```powershell
+cd wtc-login-main
+.\gradlew.bat :app:assembleDebug
+```
+
+## Observacoes
+
+- Firestore e o banco NoSQL principal.
+- Firebase Cloud Messaging e usado para notificacoes push.
+- A URL de upload de midia ainda e simulada.
+- O endpoint de refresh token ainda nao foi implementado.
+- Para producao, troque `JWT_SECRET`, proteja as credenciais e use HTTPS.
+
+## Licenca
+
+Projeto academico desenvolvido para FIAP.

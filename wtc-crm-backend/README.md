@@ -1,111 +1,116 @@
-# WTC CRM Backend — Sprint 2
+# WTC CRM Backend
 
-API REST em **Java 17** + **Spring Boot 3** para o CRM WTC (World Trade Center São Paulo): autenticação JWT, clientes, segmentos, chat, campanhas, tarefas, perfil 360°, mídia, auditoria e integração preparada para **Firebase** (Firestore / Storage / FCM).
+API REST da Sprint 2 em **Java 17 + Spring Boot 3** para CRM, chat, campanhas, tarefas, perfil 360, midia, auditoria, JWT e push notifications. A persistencia principal usa **Firebase Firestore** via Firebase Admin SDK.
 
-## Requisitos
+## Stack
 
-| Item | Versão / observação |
-|------|---------------------|
-| JDK | **17** |
-| Maven | 3.9+ |
-| **MongoDB** | **Obrigatório:** instância acessível na URI configurada (padrão `mongodb://localhost:27017/wtccrm`). Pode subir com `docker compose up -d` na pasta deste backend (`docker-compose.yml`). |
-| Firebase (opcional em dev) | Arquivo `firebase-service-account.json` em `src/main/resources/` |
+- Java 17
+- Spring Boot 3.3.3
+- Spring Security + JWT
+- Firebase Admin SDK
+- Firestore
+- WebSocket/STOMP
+- SpringDoc OpenAPI
 
-## Como executar
+## Configuracao
 
-```bash
-cd wtc-crm-backend
-docker compose up -d
+O backend le o `.env` da raiz do repositorio por meio de `DotenvBootstrap`.
+
+Variaveis principais:
+
+```env
+GOOGLE_CLOUD_PROJECT_ID=wtc-chat-e9532
+FIREBASE_CONFIG_PATH=classpath:wtc-chat-e9532-service-account.json
+JWT_SECRET=<segredo-com-pelo-menos-32-caracteres>
+JWT_EXPIRATION_MS=28800000
+SERVER_PORT=8082
+```
+
+Service account esperada:
+
+```text
+src/main/resources/wtc-chat-e9532-service-account.json
+```
+
+Esse arquivo deve ser gerado no Firebase Console do projeto `wtc-chat-e9532` em **Project settings > Service accounts**.
+
+## Como Executar
+
+```powershell
+cd E:\Programacao\wtc\wtc-crm-backend
 mvn spring-boot:run
 ```
 
-Servidor padrão: **http://localhost:8080**
+Servidor:
 
-### Variáveis e configuração
+```text
+http://localhost:8082
+```
 
-Na **raiz do repositório**, use o arquivo **`.env`** (veja `.env.example`). Ele é carregado automaticamente antes do Spring subir (`DotenvBootstrap`) e preenche propriedades como `GOOGLE_CLOUD_PROJECT_ID`, `MONGODB_URI`, `JWT_SECRET`, etc., quando definidas.
+Swagger:
 
-Edite também `src/main/resources/application.properties`:
+```text
+http://localhost:8082/swagger-ui.html
+http://localhost:8082/api-docs
+```
 
-| Propriedade | Descrição |
-|-------------|-----------|
-| `jwt.secret` | Chave secreta para assinatura HS256 (use valor forte em produção). |
-| `jwt.expiration` | Tempo de vida do token em ms (ex.: `28800000` = 8h). |
-| `firebase.config.path` | Caminho do JSON da service account (classpath). |
-| `springdoc.*` | Caminhos do Swagger/OpenAPI. |
+## Usuarios Seed
 
-## Documentação da API (Swagger)
+Ao iniciar, o backend cria no Firestore os usuarios abaixo caso ainda nao existam:
 
-Após subir a aplicação:
+| Usuario | Senha | Papel |
+| --- | --- | --- |
+| `admin` | `admin` | `OPERATOR` |
+| `operator@wtc.com` | `123456` | `OPERATOR` |
 
-- **Swagger UI:** http://localhost:8080/swagger-ui.html  
-- **OpenAPI JSON:** http://localhost:8080/api-docs  
+## Colecoes Firestore
 
-## Usuário de teste (seed)
+Os repositorios usam as seguintes colecoes:
 
-O `AuthService` cria um operador inicial na memória:
+- `users`
+- `clients`
+- `segments`
+- `conversations`
+- `messages`
+- `campaigns`
+- `tasks`
+- `audit_logs`
 
-| Campo | Valor |
-|-------|--------|
-| E-mail | `operator@wtc.com` |
-| Senha | `123456` |
-| Papel | `OPERATOR` |
+## Endpoints
 
-> **Nota:** A persistência de usuários hoje é **em memória** no backend de exemplo; em produção deve apontar para a coleção Firestore `users` conforme o desenho do Sprint 2.
+| Metodo | Caminho | Acesso |
+| --- | --- | --- |
+| POST | `/api/auth/login` | Publico |
+| POST | `/api/auth/register` | Publico |
+| PUT | `/api/auth/users/{id}/fcm-token` | Publico em dev |
+| GET/POST/PUT/DELETE | `/api/clients` | `ROLE_OPERATOR` |
+| GET/POST/PUT/DELETE | `/api/segments` | `ROLE_OPERATOR` |
+| GET/POST/PUT/DELETE | `/api/campaigns` | `ROLE_OPERATOR` |
+| GET/POST/PUT/DELETE | `/api/tasks` | Autenticado |
+| GET | `/api/profile360/{clientId}` | `ROLE_OPERATOR` |
+| POST | `/api/media/upload` | `ROLE_OPERATOR` |
+| GET/POST | `/api/chat/conversations` | Autenticado |
+| GET/POST | `/api/chat/conversations/{id}/messages` | Autenticado |
+| WebSocket | `/ws/chat` | Publico em dev |
 
-## Estrutura de pacotes (`br.com.fiap.wtccrm`)
+## WebSocket
 
-| Pacote | Responsabilidade |
-|--------|------------------|
-| `config/` | `SecurityConfig`, `WebSocketConfig`, `SwaggerConfig`, `FirebaseConfig` |
-| `auth/` | Login, registro, JWT (`JwtUtil`, filtro), DTOs |
-| `clients/` | CRUD de clientes CRM |
-| `segments/` | Segmentos e listagem de clientes por segmento |
-| `chat/` | Conversas, mensagens REST + STOMP em `/ws/chat` |
-| `campaigns/` | Campanhas e disparo |
-| `tasks/` | Tarefas por cliente/operador |
-| `profile/` | Agregação perfil 360° |
-| `media/` | Upload validado (tipos/tamanho) e URL simulada |
-| `notifications/` | Stub de FCM |
-| `audit/` | Aspecto `@Auditable` e serviço de log |
-| `exception/` | `GlobalExceptionHandler` e DTO de erro |
+- Endpoint SockJS: `/ws/chat`
+- Endpoint nativo: `/ws/native`
+- Broker: `/topic`
+- Prefixo da aplicacao: `/app`
+- Envio de mensagem: `/app/chat.send`
+- Broadcast: `/topic/conversation/{conversationId}`
 
-## Endpoints principais (resumo)
+## Build
 
-| Método | Caminho | Autenticação |
-|--------|---------|--------------|
-| POST | `/api/auth/login` | Público |
-| POST | `/api/auth/register` | Público |
-| PUT | `/api/auth/users/{id}/fcm-token` | Público (ajustar em produção) |
-| GET/POST/PUT/DELETE | `/api/clients`, `/api/segments`, … | JWT + papel conforme `SecurityConfig` |
-| GET/POST | `/api/chat/conversations`, `/api/chat/conversations/{id}/messages` | JWT |
-| WebSocket | `/ws/chat` (SockJS + STOMP) | Configurar segurança em produção |
-
-Lista completa e schemas no Swagger.
-
-## WebSocket (chat em tempo real)
-
-- **Endpoint SockJS:** `/ws/chat`  
-- **Broker:** tópicos em `/topic`  
-- **Destino da app:** prefixo `/app`  
-- **Envio STOMP:** mapeamento `/app/chat.send` → broadcast em `/topic/conversation/{conversationId}`  
-
-## Firebase
-
-1. Baixe a **service account** no console Firebase (Projeto → Configurações → Contas de serviço).  
-2. Salve como `src/main/resources/firebase-service-account.json`.  
-3. Se o arquivo não existir, a aplicação ainda sobe; inicialização Firebase é condicional.
-
-## Build e testes
-
-```bash
+```powershell
 mvn -DskipTests package
 ```
 
-## Deploy
+## Observacoes
 
-Exemplos: **Railway**, **Render**, **Azure**, etc. Defina `JWT_SECRET` (ou equivalente) e variáveis de ambiente conforme o provedor; mantenha o JSON da service account fora do repositório (use secrets).
-
-## Licença / projeto acadêmico
-
-Projeto FIAP — WTC CRM Platform Sprint 2.
+- Nao versionar `.env` nem service accounts.
+- `JWT_SECRET` deve ser forte em ambientes reais.
+- Upload de midia ainda retorna URL simulada.
+- Refresh token ainda nao foi implementado.
