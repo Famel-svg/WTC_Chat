@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import br.com.fiap.wtchat.BuildConfig // Adicionado
+import br.com.fiap.wtchat.auth.SessionManager
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
@@ -27,6 +28,13 @@ object RetrofitInstance {
         }
         OkHttpClient.Builder()
             .addInterceptor(logging)
+            .addInterceptor { chain ->
+                val response = chain.proceed(chain.request())
+                if (response.code == 401) {
+                    SessionManager.clear()
+                }
+                response
+            }
             .build()
     }
 

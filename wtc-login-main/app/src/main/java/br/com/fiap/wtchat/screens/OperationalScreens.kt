@@ -86,7 +86,11 @@ fun ClientesScreen(navController: NavController) {
     var avatarUrl by remember { mutableStateOf("") }
 
     fun loadClients() {
-        val session = SessionManager.session ?: return
+        val session = SessionManager.session
+        if (session == null) {
+            scope.launch { snackbar.showSnackbar("Sessão não encontrada. Faça login.") }
+            return
+        }
         scope.launch {
             loading = true
             try {
@@ -130,7 +134,11 @@ fun ClientesScreen(navController: NavController) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = {
-                                val session = SessionManager.session ?: return@Button
+                                val session = SessionManager.session
+                                if (session == null) {
+                                    scope.launch { snackbar.showSnackbar("Sessão expirada. Faça login novamente.") }
+                                    return@Button
+                                }
                                 scope.launch {
                                     try {
                                         val request = ClientDTO(
@@ -220,7 +228,11 @@ fun Profile360Screen(navController: NavController, clientId: String) {
     var error by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(clientId) {
-        val session = SessionManager.session ?: return@LaunchedEffect
+        val session = SessionManager.session
+        if (session == null) {
+            error = "Sessão não encontrada. Faça login."
+            return@LaunchedEffect
+        }
         try {
             profile = RetrofitInstance.api.getProfile360("Bearer ${session.token}", clientId)
         } catch (e: Exception) {
@@ -260,7 +272,11 @@ fun ApiListsScreen(navController: NavController) {
     var error by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        val session = SessionManager.session ?: return@LaunchedEffect
+        val session = SessionManager.session
+        if (session == null) {
+            error = "Sessão não encontrada. Faça login."
+            return@LaunchedEffect
+        }
         try {
             val auth = "Bearer ${session.token}"
             campaigns = RetrofitInstance.api.getCampaigns(auth)
@@ -317,7 +333,11 @@ fun MediaUploadScreen(navController: NavController) {
             Button(
                 enabled = selectedUri != null && !loading,
                 onClick = {
-                    val session = SessionManager.session ?: return@Button
+                    val session = SessionManager.session
+                    if (session == null) {
+                        scope.launch { snackbar.showSnackbar("Sessão expirada. Faça login.") }
+                        return@Button
+                    }
                     val uri = selectedUri ?: return@Button
                     scope.launch {
                         loading = true
@@ -353,7 +373,7 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun CardBlock(content: @Composable Column.() -> Unit) {
+private fun CardBlock(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),

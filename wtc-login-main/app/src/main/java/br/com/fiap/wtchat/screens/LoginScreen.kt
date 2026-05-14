@@ -213,18 +213,40 @@ fun LoginScreen(modifier: Modifier = Modifier,
                         text = "Cadastrar",
                         color = colorResource(id = R.color.azul_link_wtc),
                         textDecoration = TextDecoration.Underline,
-                        modifier = Modifier.clickable { navController.navigate("clientes") }
+                        modifier = Modifier.clickable {
+                            val session = SessionManager.session
+                            if (session == null) {
+                                errorMessage = "Para cadastrar, você deve estar logado como operador."
+                            } else {
+                                navController.navigate("clientes")
+                            }
+                        }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        LoginShortcut("Grupo") { navController.navigate("criar_grupo") }
-                        LoginShortcut("Tarefa") { navController.navigate("criar_tarefa") }
-                        LoginShortcut("Disparo") { navController.navigate("criar_disparo") }
+                        LoginShortcut("Grupo") {
+                            if (SessionManager.session == null) errorMessage = "Faça login para gerenciar grupos."
+                            else navController.navigate("criar_grupo")
+                        }
+                        LoginShortcut("Tarefa") {
+                            if (SessionManager.session == null) errorMessage = "Faça login para gerenciar tarefas."
+                            else navController.navigate("criar_tarefa")
+                        }
+                        LoginShortcut("Disparo") {
+                            if (SessionManager.session == null) errorMessage = "Faça login para gerenciar disparos."
+                            else navController.navigate("criar_disparo")
+                        }
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        LoginShortcut("Ligação") { navController.navigate("criar_ligacao") }
-                        LoginShortcut("Promoção") { navController.navigate("criar_promocao") }
+                        LoginShortcut("Ligação") {
+                            if (SessionManager.session == null) errorMessage = "Faça login para gerenciar ligações."
+                            else navController.navigate("criar_ligacao")
+                        }
+                        LoginShortcut("Promoção") {
+                            if (SessionManager.session == null) errorMessage = "Faça login para gerenciar promoções."
+                            else navController.navigate("criar_promocao")
+                        }
                     }
                 }
 
