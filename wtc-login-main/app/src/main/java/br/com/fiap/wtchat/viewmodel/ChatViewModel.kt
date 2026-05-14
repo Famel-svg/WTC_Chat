@@ -143,7 +143,9 @@ class ChatViewModel : ViewModel() {
             id = id,
             messageText = content,
             isSentByUser = isUser,
-            formattedTime = formatSentAt(sentAt)
+            formattedTime = formatSentAt(sentAt),
+            status = status,
+            mediaUrl = mediaUrl
         )
     }
 

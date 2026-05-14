@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -78,9 +79,15 @@ fun ConfiguracoesScreen(
                 )
             }
             item { ProfileCard(name = "Lucas Campos Da Silva", rm = "RM 560672", role = "Tech lead") }
-            item { SettingsMenuGroup() }
-            item { AccountDetailsCard(email = "fiap2025@gmil.com", onchangeEmailClick = {}, onChangePasswordClick = {}) }
-            item { HelpAndFeedbackButton(onClick = {}) }
+            item { SettingsMenuGroup(navController = navController) }
+            item {
+                AccountDetailsCard(
+                    email = "fiap2025@gmil.com",
+                    onchangeEmailClick = { navController.navigate("ajustes_trocar_email") },
+                    onChangePasswordClick = { navController.navigate("ajustes_trocar_senha") }
+                )
+            }
+            item { HelpAndFeedbackButton(onClick = { navController.navigate("ajustes_ajuda") }) }
             item { FooterText() }
         }
     }
@@ -137,7 +144,7 @@ fun Chip(text: String, color: Color) {
 }
 
 @Composable
-fun SettingsMenuGroup() {
+fun SettingsMenuGroup(navController: NavController) {
     Spacer(modifier = Modifier.height(5.dp))
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -145,13 +152,19 @@ fun SettingsMenuGroup() {
         colors = CardDefaults.cardColors(containerColor = cardBackground),
     ) {
         Column {
-            SettingsMenuItem(icon = Icons.Default.Person, text = "Conta", onClick = {})
-            Divider(color = lightGrayBackground)
-            SettingsMenuItem(icon = Icons.Default.Lock, text = "Privacidade", onClick = {})
-            Divider(color = lightGrayBackground)
-            SettingsMenuItem(icon = Icons.Default.Notifications, text = "Notificações", onClick = {})
-            Divider(color = lightGrayBackground)
-            SettingsMenuItem(icon = Icons.Default.Storage, text = "Armazenamento e Dados", onClick = {})
+            SettingsMenuItem(icon = Icons.Default.Person, text = "Conta", onClick = { navController.navigate("ajustes_conta") })
+            HorizontalDivider(color = lightGrayBackground)
+            SettingsMenuItem(icon = Icons.Default.Lock, text = "Privacidade", onClick = { navController.navigate("ajustes_privacidade") })
+            HorizontalDivider(color = lightGrayBackground)
+            SettingsMenuItem(icon = Icons.Default.Notifications, text = "Notificações", onClick = { navController.navigate("ajustes_notificacoes") })
+            HorizontalDivider(color = lightGrayBackground)
+            SettingsMenuItem(icon = Icons.Default.Storage, text = "Armazenamento e Dados", onClick = { navController.navigate("ajustes_armazenamento") })
+            HorizontalDivider(color = lightGrayBackground)
+            SettingsMenuItem(icon = Icons.Default.Groups, text = "Clientes e Perfil 360", onClick = { navController.navigate("clientes") })
+            HorizontalDivider(color = lightGrayBackground)
+            SettingsMenuItem(icon = Icons.Default.List, text = "Campanhas, grupos e tarefas", onClick = { navController.navigate("listas_api") })
+            HorizontalDivider(color = lightGrayBackground)
+            SettingsMenuItem(icon = Icons.Default.Image, text = "Upload de imagens", onClick = { navController.navigate("upload_midia") })
         }
     }
 }
@@ -202,7 +215,7 @@ fun AccountDetailsCard(email: String, onchangeEmailClick: () -> Unit, onChangePa
                         Text("Trocar email")
                     }
                 }
-                Divider(modifier = Modifier.padding(vertical = 5.dp), color = lightGrayBackground)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 5.dp), color = lightGrayBackground)
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Senha", fontSize = 12.sp, color = textSecondary)
@@ -243,6 +256,69 @@ fun FooterText() {
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
     )
+}
+
+@Composable
+fun SettingsDetailScreen(
+    navController: NavController,
+    title: String,
+    icon: ImageVector,
+    description: String,
+    options: List<String>
+) {
+    Scaffold(
+        bottomBar = { BottomNavBar(navController = navController) }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(lightGrayBackground)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(30.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(icon, contentDescription = title, tint = buttonRed, modifier = Modifier.size(34.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(description, color = textSecondary, fontSize = 14.sp)
+            }
+
+            items(options) { option ->
+                SettingsInfoCard(text = option)
+            }
+
+            item {
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = buttonRed)
+                ) {
+                    Text("Voltar")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsInfoCard(text: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBackground)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(16.dp),
+            color = textPrimary,
+            fontSize = 15.sp
+        )
+    }
 }
 
 

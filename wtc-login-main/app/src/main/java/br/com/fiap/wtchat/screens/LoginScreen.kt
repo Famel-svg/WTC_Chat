@@ -6,8 +6,11 @@ import br.com.fiap.wtchat.R
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -199,6 +202,32 @@ fun LoginScreen(modifier: Modifier = Modifier,
                     modifier = Modifier.offset(y = (-75).dp, x = 80.dp)
                 )
 
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp)
+                        .offset(y = (-65).dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Cadastrar",
+                        color = colorResource(id = R.color.azul_link_wtc),
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable { navController.navigate("clientes") }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LoginShortcut("Grupo") { navController.navigate("criar_grupo") }
+                        LoginShortcut("Tarefa") { navController.navigate("criar_tarefa") }
+                        LoginShortcut("Disparo") { navController.navigate("criar_disparo") }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LoginShortcut("Ligação") { navController.navigate("criar_ligacao") }
+                        LoginShortcut("Promoção") { navController.navigate("criar_promocao") }
+                    }
+                }
+
                 Button(
                     onClick = {
                         if (isLoading) return@Button
@@ -242,7 +271,7 @@ fun LoginScreen(modifier: Modifier = Modifier,
                     ),
                     modifier = Modifier
                         .width(140.dp)
-                        .offset(y = (-50).dp)
+                        .offset(y = (-40).dp)
                 ) {
                     Text(
                         text = if (isLoading) "Entrando..." else "Entrar"
@@ -255,7 +284,7 @@ fun LoginScreen(modifier: Modifier = Modifier,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 32.dp)
-                            .offset(y = (-30).dp)
+                            .offset(y = (-20).dp)
                     )
                 }
                 Box(contentAlignment = Alignment.BottomCenter) {
@@ -298,6 +327,17 @@ fun BottomWaveShape() {
     }
 }
 
+@Composable
+private fun LoginShortcut(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        color = colorResource(id = R.color.azul_link_wtc),
+        fontSize = 12.sp,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier.clickable(onClick = onClick)
+    )
+}
+
 
 
 @Preview(showBackground = true, showSystemUi = true, device = "id:pixel_6")
@@ -307,6 +347,5 @@ fun LoginScreenPreview() {
         LoginScreen(navController = rememberNavController())
     }
 }
-
 
 

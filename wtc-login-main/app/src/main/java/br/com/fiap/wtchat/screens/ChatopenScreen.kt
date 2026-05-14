@@ -112,7 +112,7 @@ fun ChatTopBar(contact: ContactDetails, navController: NavController) {
 }
 
 @Composable
-fun ChatInputBar(onSendMessage: (String) -> Unit) {
+fun ChatInputBar(onSendMessage: (String) -> Unit, onAttach: () -> Unit) {
     var currentText by remember { mutableStateOf("") }
 
     Row(
@@ -123,7 +123,7 @@ fun ChatInputBar(onSendMessage: (String) -> Unit) {
             .padding(vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { }) {
+        IconButton(onClick = onAttach) {
             Icon(Icons.Default.Add, contentDescription = "Anexar", tint = Color.White)
         }
 
@@ -162,7 +162,8 @@ fun ChatBubble(
     message: String,
     isUser: Boolean,
     time: String,
-    isRead: Boolean
+    status: String?,
+    mediaUrl: String?
 ) {
     val bubbleColor = if (isUser) colorUserBubble else colorOtherBubble
     val textColor = Color.White
@@ -193,6 +194,14 @@ fun ChatBubble(
                     fontSize = 16.sp,
                     modifier = Modifier.padding(end = 40.dp)
                 )
+                mediaUrl?.takeIf { it.isNotBlank() }?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "Anexo: $it",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 12.sp
+                    )
+                }
 
                 Row(
                     modifier = Modifier.align(Alignment.End),
@@ -206,11 +215,22 @@ fun ChatBubble(
                     Spacer(Modifier.width(4.dp))
 
                     if (isUser) {
+                        val normalizedStatus = statusLabel(status)
                         Icon(
                             imageVector = Icons.Default.DoneAll,
-                            contentDescription = "Lida",
-                            tint = if (isRead) Color(0xFFC7E6FF) else Color.White.copy(alpha = 0.7f),
+                            contentDescription = normalizedStatus,
+                            tint = when (status?.uppercase()) {
+                                "READ" -> Color(0xFFC7E6FF)
+                                "FAILED" -> Color(0xFFFFCDD2)
+                                else -> Color.White.copy(alpha = 0.7f)
+                            },
                             modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(3.dp))
+                        Text(
+                            text = normalizedStatus,
+                            color = Color.White.copy(alpha = 0.75f),
+                            fontSize = 10.sp
                         )
                     }
                 }
@@ -237,7 +257,12 @@ fun ChatScreen(
 
     Scaffold(
         topBar = { ChatTopBar(contact = jm, navController = navController) },
-        bottomBar = { ChatInputBar(onSendMessage = viewModel::sendMessage) }
+        bottomBar = {
+            ChatInputBar(
+                onSendMessage = viewModel::sendMessage,
+                onAttach = { navController.navigate("upload_midia") }
+            )
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -263,11 +288,22 @@ fun ChatScreen(
                         message = message.messageText,
                         isUser = message.isSentByUser,
                         time = message.formattedTime,
-                        isRead = true
+                        status = message.status,
+                        mediaUrl = message.mediaUrl
                     )
                 }
             }
         }
+    }
+}
+
+private fun statusLabel(status: String?): String {
+    return when (status?.uppercase()) {
+        "SENT" -> "enviado"
+        "DELIVERED" -> "entregue"
+        "READ" -> "lido"
+        "FAILED" -> "falha"
+        else -> "enviado"
     }
 }
 

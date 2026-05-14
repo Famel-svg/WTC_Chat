@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -166,11 +167,11 @@ fun TopSection() {
 @Composable
 fun MessageHeader(navController: NavController) {
     val actions = listOf(
-        Triple("Criar grupo", Icons.Default.Group, "criar_lista"),
-        Triple("Criar tarefa", Icons.Default.CalendarToday, "Tarefas"),
-        Triple("Disparo", Icons.Default.Send, "Conversas"),
-        Triple("Criar ligação", Icons.Default.Call, "Principal"),
-        Triple("Promoção", Icons.Default.Campaign, "Principal")
+        Triple("Criar grupo", Icons.Default.Group, "criar_grupo"),
+        Triple("Criar tarefa", Icons.Default.CalendarToday, "criar_tarefa"),
+        Triple("Disparo", Icons.AutoMirrored.Filled.Send, "criar_disparo"),
+        Triple("Criar ligação", Icons.Default.Call, "criar_ligacao"),
+        Triple("Promoção", Icons.Default.Campaign, "criar_promocao")
     )
     LazyRow(
         modifier = Modifier.padding(vertical = 16.dp),

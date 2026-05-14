@@ -29,6 +29,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +57,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.fiap.wtchat.R
+import br.com.fiap.wtchat.api.RetrofitInstance
+import br.com.fiap.wtchat.api.dto.CampaignDTO
+import br.com.fiap.wtchat.api.dto.SegmentDTO
+import br.com.fiap.wtchat.api.dto.TaskDTO
+import br.com.fiap.wtchat.auth.SessionManager
 import br.com.fiap.wtchat.functions.BottomNavBar
 import br.com.fiap.wtchat.ui.theme.WTChatTheme
 import kotlinx.coroutines.launch
@@ -137,7 +143,26 @@ fun CriarGrupoScreen(navController: NavController) {
             FormField("Descrição", "Objetivo do grupo", singleLine = false),
             FormField("Visibilidade", "Equipe, privado ou publico"),
             FormField("Filtro inicial", "Ex: Leads ativos")
-        )
+        ),
+        onSubmit = { values ->
+            val session = SessionManager.session ?: error("Faça login novamente para criar grupos.")
+            val name = values.getOrNull(0).orEmpty().trim()
+            if (name.isBlank()) error("Informe o nome do grupo.")
+
+            RetrofitInstance.api.createSegment(
+                authorization = "Bearer ${session.token}",
+                request = SegmentDTO(
+                    name = name,
+                    description = buildDetails(
+                        values.getOrNull(1).orEmpty(),
+                        "Visibilidade" to values.getOrNull(2).orEmpty(),
+                        "Filtro inicial" to values.getOrNull(3).orEmpty()
+                    ),
+                    color = "#EA5020"
+                )
+            )
+            "Grupo criado no backend"
+        }
     )
 }
 
@@ -154,7 +179,30 @@ fun CriarTarefaScreen(navController: NavController) {
             FormField("Prazo", "Hoje, amanhã ou data especifica"),
             FormField("Prioridade", "Alta, media ou baixa"),
             FormField("Observações", "Detalhes da tarefa", singleLine = false)
-        )
+        ),
+        onSubmit = { values ->
+            val session = SessionManager.session ?: error("Faça login novamente para criar tarefas.")
+            val title = values.getOrNull(0).orEmpty().trim()
+            if (title.isBlank()) error("Informe o titulo da tarefa.")
+
+            val responsavel = values.getOrNull(1).orEmpty().trim()
+            val prazo = values.getOrNull(2).orEmpty().trim()
+            val prioridade = values.getOrNull(3).orEmpty().trim()
+            val observacoes = values.getOrNull(4).orEmpty().trim()
+            val description = buildTaskDescription(responsavel, prazo, observacoes)
+
+            RetrofitInstance.api.createTask(
+                authorization = "Bearer ${session.token}",
+                request = TaskDTO(
+                    title = title,
+                    description = description,
+                    operatorId = session.userId,
+                    status = "OPEN",
+                    priority = priorityFromLabel(prioridade)
+                )
+            )
+            "Tarefa criada no backend"
+        }
     )
 }
 
@@ -171,7 +219,27 @@ fun CriarDisparoScreen(navController: NavController) {
             FormField("Canal", "WhatsApp, email ou SMS"),
             FormField("Mensagem", "Texto do disparo", singleLine = false),
             FormField("Agendamento", "Enviar agora ou data/hora")
-        )
+        ),
+        onSubmit = { values ->
+            val session = SessionManager.session ?: error("Faça login novamente para criar disparos.")
+            val title = values.getOrNull(0).orEmpty().trim()
+            if (title.isBlank()) error("Informe o nome da campanha.")
+
+            RetrofitInstance.api.createCampaign(
+                authorization = "Bearer ${session.token}",
+                request = CampaignDTO(
+                    title = title,
+                    description = buildDetails(
+                        values.getOrNull(3).orEmpty(),
+                        "Canal" to values.getOrNull(2).orEmpty(),
+                        "Agendamento" to values.getOrNull(4).orEmpty()
+                    ),
+                    targetSegmentId = values.getOrNull(1).orEmpty().trim().ifBlank { null },
+                    status = "DRAFT"
+                )
+            )
+            "Disparo criado no backend"
+        }
     )
 }
 
@@ -188,7 +256,30 @@ fun CriarLigacaoScreen(navController: NavController) {
             FormField("Data e hora", "Ex: 10/05 às 14:00"),
             FormField("Responsavel", "Operador"),
             FormField("Notas", "Contexto para a ligação", singleLine = false)
-        )
+        ),
+        onSubmit = { values ->
+            val session = SessionManager.session ?: error("Faça login novamente para criar ligações.")
+            val client = values.getOrNull(0).orEmpty().trim()
+            val reason = values.getOrNull(1).orEmpty().trim()
+            if (client.isBlank()) error("Informe o cliente da ligação.")
+
+            RetrofitInstance.api.createTask(
+                authorization = "Bearer ${session.token}",
+                request = TaskDTO(
+                    title = "Ligação: $client",
+                    description = buildDetails(
+                        reason,
+                        "Data e hora" to values.getOrNull(2).orEmpty(),
+                        "Responsavel" to values.getOrNull(3).orEmpty(),
+                        "Notas" to values.getOrNull(4).orEmpty()
+                    ),
+                    operatorId = session.userId,
+                    status = "OPEN",
+                    priority = 2
+                )
+            )
+            "Ligação criada como tarefa"
+        }
     )
 }
 
@@ -205,7 +296,28 @@ fun CriarPromocaoScreen(navController: NavController) {
             FormField("Periodo", "Inicio e fim da campanha"),
             FormField("Publico alvo", "Clientes ativos, leads ou grupos"),
             FormField("Condições", "Regras da promoção", singleLine = false)
-        )
+        ),
+        onSubmit = { values ->
+            val session = SessionManager.session ?: error("Faça login novamente para criar promoções.")
+            val title = values.getOrNull(0).orEmpty().trim()
+            if (title.isBlank()) error("Informe o nome da promoção.")
+
+            RetrofitInstance.api.createCampaign(
+                authorization = "Bearer ${session.token}",
+                request = CampaignDTO(
+                    title = title,
+                    description = buildDetails(
+                        values.getOrNull(1).orEmpty(),
+                        "Periodo" to values.getOrNull(2).orEmpty(),
+                        "Publico alvo" to values.getOrNull(3).orEmpty(),
+                        "Condições" to values.getOrNull(4).orEmpty()
+                    ),
+                    targetSegmentId = values.getOrNull(3).orEmpty().trim().ifBlank { null },
+                    status = "DRAFT"
+                )
+            )
+            "Promoção criada no backend"
+        }
     )
 }
 
@@ -215,11 +327,13 @@ private fun CreateFormScreen(
     title: String,
     icon: ImageVector,
     submitLabel: String,
-    fields: List<FormField>
+    fields: List<FormField>,
+    onSubmit: (suspend (List<String>) -> String)? = null
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val values = remember(fields) { fields.map { mutableStateOf("") } }
+    var isSubmitting by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController = navController) },
@@ -295,20 +409,59 @@ private fun CreateFormScreen(
                     Button(
                         onClick = {
                             scope.launch {
-                                snackbarHostState.showSnackbar("$title salvo com sucesso")
+                                isSubmitting = true
+                                try {
+                                    val message = onSubmit?.invoke(values.map { it.value })
+                                        ?: "$title salvo localmente"
+                                    snackbarHostState.showSnackbar(message)
+                                } catch (e: Exception) {
+                                    snackbarHostState.showSnackbar(e.message ?: "Não foi possível salvar.")
+                                } finally {
+                                    isSubmitting = false
+                                }
                             }
                         },
+                        enabled = !isSubmitting,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.laranja_wtc))
                     ) {
-                        Icon(Icons.Default.Save, contentDescription = submitLabel, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.size(6.dp))
-                        Text(submitLabel)
+                        if (isSubmitting) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.Save, contentDescription = submitLabel, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.size(6.dp))
+                            Text(submitLabel)
+                        }
                     }
                 }
             }
         }
     }
+}
+
+private fun priorityFromLabel(value: String): Int {
+    return when (value.trim().lowercase()) {
+        "alta", "alto", "3" -> 3
+        "media", "média", "medio", "médio", "2" -> 2
+        else -> 1
+    }
+}
+
+private fun buildTaskDescription(responsavel: String, prazo: String, observacoes: String): String {
+    return listOf(
+        responsavel.takeIf { it.isNotBlank() }?.let { "Responsavel: $it" },
+        prazo.takeIf { it.isNotBlank() }?.let { "Prazo: $it" },
+        observacoes.takeIf { it.isNotBlank() }
+    ).filterNotNull().joinToString("\n").ifBlank { "Sem descrição." }
+}
+
+private fun buildDetails(mainText: String, vararg details: Pair<String, String>): String {
+    return buildList {
+        mainText.trim().takeIf { it.isNotBlank() }?.let { add(it) }
+        details.forEach { (label, value) ->
+            value.trim().takeIf { it.isNotBlank() }?.let { add("$label: $it") }
+        }
+    }.joinToString("\n").ifBlank { "Sem descrição." }
 }
 
 @Composable
