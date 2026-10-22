@@ -3,6 +3,7 @@ package br.com.fiap.wtccrm.auth.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
@@ -21,6 +22,15 @@ public class JwtUtil {
 
     @Value("${jwt.expiration:28800000}")
     private long expiration;
+
+    /** Falha a subida da aplicação se {@code jwt.secret} (env {@code JWT_SECRET}) estiver vazio. */
+    @PostConstruct
+    void validateSecret() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "jwt.secret não configurado: defina a variável de ambiente JWT_SECRET (não pode ser vazia).");
+        }
+    }
 
     /** Gera JWT assinado com a chave configurada em {@code jwt.secret}. */
     public String generateToken(String userId, String role) {

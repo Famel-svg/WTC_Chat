@@ -114,6 +114,6 @@ mvn -DskipTests package
 ## Observacoes
 
 - Nao versionar `.env` nem service accounts.
-- `JWT_SECRET` deve ser forte em ambientes reais.
+- `JWT_SECRET` é obrigatório (sem valor padrão): a aplicação não sobe se estiver ausente ou vazio. Use um segredo forte.
 - Upload de midia ainda retorna URL simulada.
 - Refresh token ainda nao foi implementado.
