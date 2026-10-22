@@ -56,12 +56,15 @@ http://localhost:8082/api-docs
 
 ## Usuarios Seed
 
-Ao iniciar, o backend cria no Firestore os usuarios abaixo caso ainda nao existam:
+Nao ha credenciais fixas no codigo. Um operador inicial (papel `OPERATOR`) so e criado no Firestore,
+caso ainda nao exista, quando as duas variaveis abaixo estiverem definidas no ambiente (ou no `.env`):
 
-| Usuario | Senha | Papel |
-| --- | --- | --- |
-| `admin` | `admin` | `OPERATOR` |
-| `operator@wtc.com` | `123456` | `OPERATOR` |
+| Variavel | Uso |
+| --- | --- |
+| `WTC_SEED_OPERATOR_EMAIL` | e-mail/login do operador |
+| `WTC_SEED_OPERATOR_PASSWORD` | senha do operador |
+
+Sem elas, nenhum usuario e criado; use `POST /api/auth/register` para cadastrar.
 
 ## Colecoes Firestore
 

@@ -34,12 +34,8 @@ Usuario: admin
 Senha: admin
 ```
 
-Tambem existe:
-
-```text
-Usuario: operator@wtc.com
-Senha: 123456
-```
+Operador inicial: defina `WTC_SEED_OPERATOR_EMAIL` e `WTC_SEED_OPERATOR_PASSWORD` no ambiente
+(ou no `.env`) do backend antes de subi-lo; o login usa esses valores.
 
 ## Fluxo de Autenticacao
 
