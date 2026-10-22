@@ -78,7 +78,6 @@ public class AuthService {
     void seedOperator() {
         try {
             seedUserIfMissing("operator@wtc.com", "123456", "WTC Operator", "OPERATOR");
-            seedUserIfMissing("admin", "admin", "Admin", "OPERATOR");
         } catch (Exception e) {
             LOGGER.warn("Seed do operador padrão não executado: {}", e.getMessage());
         }
